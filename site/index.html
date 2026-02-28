@@ -879,7 +879,6 @@ window.stripRedundantHeaderLines = function(text, a){
       if(wantTitle && n && n.replace(/[^a-z0-9 ]/g,'') === wantTitle.replace(/[^a-z0-9 ]/g,'')){
         i += 1; continue;
       }
-      // Common pattern: "TITLE  Local Commentaries  DATE  Rolland Kidder"
       if(n.startsWith('local commentar')) { i += 1; continue; }
       break;
     }
@@ -899,7 +898,7 @@ let activeTopic = 'all';
 // ── Load data ──────────────────────────────────────────────────────────────
 async function loadData() {
   try {
-    const res = await fetch('data.json');
+    const res = await fetch('data.json', { cache: 'no-store' });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const json = await res.json();
     allArticles = (json.articles || []).map((a, i) => ({ ...a, _id: i }));
@@ -925,12 +924,20 @@ function init() {
 }
 
 function buildTopicBar() {
+  // Update ALL pill to include total count
+  const allPill = document.querySelector('.pill.all-pill[data-topic="all"]');
+  if (allPill) allPill.textContent = `All (${allArticles.length})`;
+
+  // Remove old dynamically-added pills if rebuild happens
+  const bar = document.querySelector('.topic-bar');
+  bar.querySelectorAll('.pill:not(.all-pill)').forEach(n => n.remove());
+
   const counts = {};
   allArticles.forEach(a => (a.topics || []).forEach(t => {
     counts[t] = (counts[t] || 0) + 1;
   }));
   const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]);
-  const bar = document.querySelector('.topic-bar');
+
   sorted.forEach(([topic, count]) => {
     const pill = document.createElement('span');
     pill.className = 'pill';
@@ -961,21 +968,25 @@ function updateBadge() {
 
 // ── Filtering & Sorting ───────────────────────────────────────────────────
 function getFiltered() {
-  const q   = document.getElementById('search-input').value.trim().toLowerCase();
-  const df  = document.getElementById('date-from').value;
-  const dt  = document.getElementById('date-to').value;
+  const q    = document.getElementById('search-input').value.trim().toLowerCase();
+  const df   = document.getElementById('date-from').value;
+  const dt   = document.getElementById('date-to').value;
   const sort = document.getElementById('sort-select').value;
+
+  const dateFilterActive = Boolean(df || dt);
 
   let results = allArticles.filter(a => {
     // Topic filter
     if (activeTopic !== 'all' && !(a.topics || []).includes(activeTopic)) return false;
-    // Date filter
-    if (df || dt) {
-      // If user is filtering by date, hide undated items
+
+    // Date filter behavior:
+    // If user is filtering by date range, exclude undated items (they cannot match).
+    if (dateFilterActive) {
       if (!a.date) return false;
       if (df && a.date < df) return false;
       if (dt && a.date > dt) return false;
     }
+
     // Search
     if (q) {
       const haystack = [a.title, a.summary, a.text, (a.topics||[]).join(' ')].join(' ').toLowerCase();
@@ -984,13 +995,27 @@ function getFiltered() {
     return true;
   });
 
+  // Sort: undated should be LAST for date sorts
   results.sort((a, b) => {
-    const da = a.date || '0000-00-00';
-    const db = b.date || '0000-00-00';
-    if (sort === 'date-desc') return db.localeCompare(da);
-    if (sort === 'date-asc')  return da.localeCompare(db);
-    if (sort === 'title-asc') return a.title.localeCompare(b.title);
-    if (sort === 'title-desc') return b.title.localeCompare(a.title);
+    const da = a.date || '';
+    const db = b.date || '';
+
+    // For date sorts: empty dates should sort to bottom
+    if (sort === 'date-desc') {
+      if (!da && !db) return 0;
+      if (!da) return 1;
+      if (!db) return -1;
+      return db.localeCompare(da);
+    }
+    if (sort === 'date-asc') {
+      if (!da && !db) return 0;
+      if (!da) return 1;
+      if (!db) return -1;
+      return da.localeCompare(db);
+    }
+
+    if (sort === 'title-asc') return (a.title || '').localeCompare(b.title || '');
+    if (sort === 'title-desc') return (b.title || '').localeCompare(a.title || '');
     if (sort === 'wc-desc')   return (b.wordCount||0) - (a.wordCount||0);
     return 0;
   });
@@ -1021,13 +1046,12 @@ function render() {
     const dateStr = a.date ? formatDate(a.date) : '(date unknown)';
     const topicHtml = (a.topics || []).slice(0,3).map(t =>
       `<span class="card-topic">${esc(t)}</span>`).join('');
-    const summaryHtml = q ? highlight(esc(a.summary || ''), q) : esc(a.summary || '');
     const titleHtml   = q ? highlight(esc(a.title), q) : esc(a.title);
 
     card.innerHTML = `
       <div class="card-date">${dateStr}</div>
       <div class="card-title">${titleHtml}</div>
-<div class="card-footer">
+      <div class="card-footer">
         <div class="card-topics">${topicHtml}</div>
         <div class="card-wc">${a.wordCount ? a.wordCount.toLocaleString() + ' wds' : ''}</div>
       </div>`;
@@ -1054,7 +1078,7 @@ function selectArticle(id) {
 
   // Update card selection state
   document.querySelectorAll('.article-card').forEach(c => {
-    c.classList.toggle('selected', parseInt(c.dataset.id) === id);
+    c.classList.toggle('selected', parseInt(c.dataset.id, 10) === id);
   });
 
   const panel = document.getElementById('preview-content');
@@ -1069,7 +1093,7 @@ function selectArticle(id) {
   const topicTags = (a.topics || []).slice(0,3).map(t =>
     `<span class="preview-topic-tag">${esc(t)}</span>`).join(' ');
 
-  // Format body text — paragraphs if present, otherwise sentence-based fallback
+  // Format body text
   const cleanedText = window.stripRedundantHeaderLines(a.text || '', a);
   const rawText = String(cleanedText).replace(/\r\n/g,'\n').replace(/\r/g,'\n').trim();
   let paras = rawText.split(/\n\s*\n+/).map(p => p.trim()).filter(Boolean);
@@ -1086,7 +1110,7 @@ function selectArticle(id) {
       }).join('')
     : '';
 
-panel.innerHTML = `
+  panel.innerHTML = `
     <div class="readerBar"><button class="readerBack" id="readerBack" type="button">Back</button></div>
     <div class="preview-header">
       <div class="preview-date">${a.date ? formatDate(a.date) : 'Date unknown'} &nbsp;·&nbsp; ${esc(a.filename)}</div>
@@ -1096,7 +1120,11 @@ panel.innerHTML = `
         <div class="preview-wc">${a.wordCount ? a.wordCount.toLocaleString() + ' words' : ''}</div>
       </div>
     </div>
-    <div class="preview-body">${a.summary ? `<div class="preview-summary"><strong>Summary</strong>${esc(a.summary)}</div><div class="divider-gap"></div><div class="summary-spacer"></div>` : ''}${bodyParagraphs || '<p><em>No text available for this article.</em></p>'}</div>
+    <div class="preview-body">${
+      a.summary
+        ? `<div class="preview-summary"><strong>Summary</strong>${esc(a.summary)}</div><div class="divider-gap"></div><div class="summary-spacer"></div>`
+        : ''
+    }${bodyParagraphs || '<p><em>No text available for this article.</em></p>'}</div>
   `;
 }
 
@@ -1135,7 +1163,6 @@ function bindEvents() {
       document.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
       pill.classList.add('active');
       render();
-      // On mobile, if filters are open, close them after choosing a topic
       if (document.body.classList.contains('filters-open')) {
         document.body.classList.remove('filters-open');
         const btn = document.getElementById('filterToggle');
@@ -1165,77 +1192,7 @@ function formatDate(isoDate) {
     const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
     return `${months[parseInt(m,10)-1]} ${parseInt(d,10)}, ${y}`;
   } catch { return isoDate; }
-
-window._normLine = function(s){
-  return String(s || '')
-    .replace(/\s+/g,' ')
-    .replace(/[“”]/g,'"')
-    .replace(/[’]/g,"'")
-    .trim()
-    .toLowerCase();
 }
-
-// Remove stacked header lines at the start of body text that duplicate the preview header.
-window.stripRedundantHeaderLines = function(text, a){
-  let t = String(text || '').replace(/\r\n/g,'\n').replace(/\r/g,'\n').trim();
-  if(!t) return t;
-
-  const lines = t.split('\n').map(l => l.trim()).filter(Boolean);
-  const wantTitle = _normLine(a && a.title);
-  const wantDate  = _normLine(a && a.date ? formatDate(a.date) : '');
-
-  const check = new Set([
-    wantTitle,
-    wantDate,
-    'local commentaries',
-    'local commentary',
-    'opinion & commentary',
-    'opinion and commentary',
-    'opinion & commentaries',
-    'opinion and commentaries',
-    'rolland kidder',
-    'by rolland kidder'
-  ]);
-
-  let i = 0;
-  while(i < lines.length && i < 10){
-    const n = _normLine(lines[i]);
-    if(n && check.has(n)){
-      i += 1; continue;
-    }
-    // Title match ignoring punctuation
-    if(wantTitle && n && n.replace(/[^a-z0-9 ]/g,'') === wantTitle.replace(/[^a-z0-9 ]/g,'')){
-      i += 1; continue;
-    }
-    break;
-  }
-
-  return lines.slice(i).join('\n\n').trim();
-}
-
-}
-
-
-function renderTextToHtml(text){
-  if(!text) return "";
-  text = String(text).replace(/\r\n/g, "\n").replace(/\r/g, "\n");
-  const paras = text.split(/\n\s*\n+/).map(p => p.trim()).filter(Boolean);
-  if(paras.length <= 1){
-    const safe = escapeHtml(text.trim());
-    return safe.replace(/\n/g, "<br>");
-  }
-  return paras.map(p => `<p>${escapeHtml(p).replace(/\n/g,"<br>")}</p>`).join("");
-}
-
-function escapeHtml(str){
-  return String(str)
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
-}
-
 
 // ── Boot ──────────────────────────────────────────────────────────────────
 loadData();
@@ -1277,12 +1234,10 @@ loadData();
   if (typeof _orig === 'function'){
     window.selectArticle = function(id){
       _orig(id);
-      if (true){
-        const wasOpen = document.body.classList.contains('reader-open');
-        document.body.classList.add('reader-open');
-        if (!wasOpen){
-          try { history.pushState({__readerOpen:true}, '', location.href); } catch(_) {}
-        }
+      const wasOpen = document.body.classList.contains('reader-open');
+      document.body.classList.add('reader-open');
+      if (!wasOpen){
+        try { history.pushState({__readerOpen:true}, '', location.href); } catch(_) {}
       }
     }
   }
