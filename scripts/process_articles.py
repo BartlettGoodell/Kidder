@@ -340,7 +340,10 @@ def main():
     print(f"Output: {out_json}")
     print(f"State:  {state_path}")
 
-    sys.exit(10 if updated > 0 else 0)
+    # Exit codes:
+    # 0 = nothing updated
+    # 8 = updated JSON
+    sys.exit(8 if updated > 0 else 0)
 
 
 if __name__ == "__main__":
