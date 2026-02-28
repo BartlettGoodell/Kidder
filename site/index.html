@@ -839,7 +839,6 @@
 
 
 <script>
-
 // ===== Global helpers (must exist before init) =====
 window._normLine = function(s){
   return String(s || '')
@@ -850,6 +849,30 @@ window._normLine = function(s){
     .toLowerCase();
 };
 
+function esc(str) {
+  return String(str || '')
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function highlight(html, q) {
+  if (!q) return html;
+  const safe = q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return html.replace(new RegExp(`(${safe})`, 'gi'), '<mark>$1</mark>');
+}
+
+function formatDate(isoDate) {
+  if (!isoDate) return '';
+  try {
+    const [y, m, d] = isoDate.split('-');
+    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    return `${months[parseInt(m,10)-1]} ${parseInt(d,10)}, ${y}`;
+  } catch {
+    return isoDate;
+  }
+}
+
+// Remove stacked header lines at the start of body text that duplicate the preview header.
 window.stripRedundantHeaderLines = function(text, a){
   try{
     let t = String(text || '').replace(/\r\n/g,'\n').replace(/\r/g,'\n').trim();
@@ -876,10 +899,13 @@ window.stripRedundantHeaderLines = function(text, a){
     while(i < lines.length && i < 12){
       const n = window._normLine(lines[i]);
       if(n && check.has(n)){ i += 1; continue; }
+
       if(wantTitle && n && n.replace(/[^a-z0-9 ]/g,'') === wantTitle.replace(/[^a-z0-9 ]/g,'')){
         i += 1; continue;
       }
+
       if(n.startsWith('local commentar')) { i += 1; continue; }
+
       break;
     }
     return lines.slice(i).join('\n\n').trim();
@@ -895,93 +921,106 @@ let allArticles = [];
 let selectedId = null;
 let activeTopic = 'all';
 
+// Date filter should be OPT-IN (this fixes your 99 vs 64 problem)
+let dateFilterActive = false;
+
+
 // ── Load data ──────────────────────────────────────────────────────────────
 async function loadData() {
   try {
-    const res = await fetch('data.json', { cache: 'no-store' });
+    const res = await fetch('data.json');
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const json = await res.json();
+
     allArticles = (json.articles || []).map((a, i) => ({ ...a, _id: i }));
+
     init();
   } catch (e) {
     document.getElementById('article-grid').innerHTML =
       `<div class="no-results">
         <strong>Could not load data.json</strong><br><br>
-        Make sure <code>data.json</code> is in the same folder as this HTML file,<br>
-        then open it via a local server or double-click (some browsers block local JSON).<br><br>
-        <small style="color:var(--ink-light)">${e.message}</small>
+        <small style="color:var(--ink-light)">${esc(e.message)}</small>
       </div>`;
   }
 }
 
+
 // ── Init ───────────────────────────────────────────────────────────────────
 function init() {
   buildTopicBar();
-  setDateBounds();
-  updateBadge();
+  setDateBounds();      // sets min/max + year badge, does NOT auto-filter
+  updateBadges();       // count badge + All pill count
   render();
   bindEvents();
 }
 
+function updateBadges() {
+  const badge = document.getElementById('article-count-badge');
+  if (badge) badge.textContent = `${allArticles.length} articles`;
+
+  const allPill = document.querySelector('.pill.all-pill');
+  if (allPill) {
+    allPill.textContent = `All (${allArticles.length})`;
+  }
+}
+
 function buildTopicBar() {
-  // Update ALL pill to include total count
-  const allPill = document.querySelector('.pill.all-pill[data-topic="all"]');
-  if (allPill) allPill.textContent = `All (${allArticles.length})`;
-
-  // Remove old dynamically-added pills if rebuild happens
-  const bar = document.querySelector('.topic-bar');
-  bar.querySelectorAll('.pill:not(.all-pill)').forEach(n => n.remove());
-
   const counts = {};
   allArticles.forEach(a => (a.topics || []).forEach(t => {
     counts[t] = (counts[t] || 0) + 1;
   }));
+
   const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+
+  const bar = document.querySelector('.topic-bar');
+  if (!bar) return;
+
+  // Remove existing dynamic pills (keep Topic label + All pill)
+  const keep = Array.from(bar.querySelectorAll('.topic-label, .all-pill'));
+  bar.innerHTML = '';
+  keep.forEach(n => bar.appendChild(n));
 
   sorted.forEach(([topic, count]) => {
     const pill = document.createElement('span');
     pill.className = 'pill';
     pill.dataset.topic = topic;
     pill.textContent = `${topic} (${count})`;
-    pill.addEventListener('click', () => {
-      activeTopic = topic;
-      document.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
-      pill.classList.add('active');
-      render();
-    });
     bar.appendChild(pill);
   });
 }
 
 function setDateBounds() {
+  const dfEl = document.getElementById('date-from');
+  const dtEl = document.getElementById('date-to');
+
   const dates = allArticles.map(a => a.date).filter(Boolean).sort();
   if (!dates.length) return;
-  document.getElementById('date-from').value = dates[0];
-  document.getElementById('date-to').value   = dates[dates.length - 1];
-  document.getElementById('year-range-badge').textContent =
-    `${dates[0].slice(0,4)}–${dates[dates.length-1].slice(0,4)}`;
+
+  const minD = dates[0];
+  const maxD = dates[dates.length - 1];
+
+  // Set range limits but DO NOT set values (prevents auto-excluding undated)
+  if (dfEl) { dfEl.min = minD; dfEl.max = maxD; }
+  if (dtEl) { dtEl.min = minD; dtEl.max = maxD; }
+
+  const yr = document.getElementById('year-range-badge');
+  if (yr) yr.textContent = `${minD.slice(0,4)}–${maxD.slice(0,4)}`;
 }
 
-function updateBadge() {
-  document.getElementById('article-count-badge').textContent = allArticles.length + ' articles';
-}
 
 // ── Filtering & Sorting ───────────────────────────────────────────────────
 function getFiltered() {
-  const q    = document.getElementById('search-input').value.trim().toLowerCase();
-  const df   = document.getElementById('date-from').value;
-  const dt   = document.getElementById('date-to').value;
-  const sort = document.getElementById('sort-select').value;
-
-  const dateFilterActive = Boolean(df || dt);
+  const q   = (document.getElementById('search-input')?.value || '').trim().toLowerCase();
+  const df  = (document.getElementById('date-from')?.value || '');
+  const dt  = (document.getElementById('date-to')?.value || '');
+  const sort = (document.getElementById('sort-select')?.value || 'date-desc');
 
   let results = allArticles.filter(a => {
     // Topic filter
     if (activeTopic !== 'all' && !(a.topics || []).includes(activeTopic)) return false;
 
-    // Date filter behavior:
-    // If user is filtering by date range, exclude undated items (they cannot match).
-    if (dateFilterActive) {
+    // Date filter ONLY if user activated it
+    if (dateFilterActive && (df || dt)) {
       if (!a.date) return false;
       if (df && a.date < df) return false;
       if (dt && a.date > dt) return false;
@@ -992,28 +1031,15 @@ function getFiltered() {
       const haystack = [a.title, a.summary, a.text, (a.topics||[]).join(' ')].join(' ').toLowerCase();
       if (!haystack.includes(q)) return false;
     }
+
     return true;
   });
 
-  // Sort: undated should be LAST for date sorts
   results.sort((a, b) => {
-    const da = a.date || '';
-    const db = b.date || '';
-
-    // For date sorts: empty dates should sort to bottom
-    if (sort === 'date-desc') {
-      if (!da && !db) return 0;
-      if (!da) return 1;
-      if (!db) return -1;
-      return db.localeCompare(da);
-    }
-    if (sort === 'date-asc') {
-      if (!da && !db) return 0;
-      if (!da) return 1;
-      if (!db) return -1;
-      return da.localeCompare(db);
-    }
-
+    const da = a.date || '0000-00-00';
+    const db = b.date || '0000-00-00';
+    if (sort === 'date-desc') return db.localeCompare(da);
+    if (sort === 'date-asc')  return da.localeCompare(db);
     if (sort === 'title-asc') return (a.title || '').localeCompare(b.title || '');
     if (sort === 'title-desc') return (b.title || '').localeCompare(a.title || '');
     if (sort === 'wc-desc')   return (b.wordCount||0) - (a.wordCount||0);
@@ -1023,18 +1049,23 @@ function getFiltered() {
   return results;
 }
 
+
 // ── Render ────────────────────────────────────────────────────────────────
 function render() {
-  const q = document.getElementById('search-input').value.trim();
+  const q = (document.getElementById('search-input')?.value || '').trim();
   const filtered = getFiltered();
   const grid = document.getElementById('article-grid');
+
+  if (!grid) return;
 
   grid.innerHTML = '';
 
   if (!filtered.length) {
     grid.innerHTML = '<div class="no-results">No articles match the current filters.</div>';
-    document.getElementById('status-showing').textContent = '0 articles shown';
-    document.getElementById('status-filter').textContent = '';
+    const ss = document.getElementById('status-showing');
+    const sf = document.getElementById('status-filter');
+    if (ss) ss.textContent = '0 articles shown';
+    if (sf) sf.textContent = '';
     return;
   }
 
@@ -1064,11 +1095,20 @@ function render() {
   const active = [];
   if (activeTopic !== 'all') active.push(`topic: ${activeTopic}`);
   if (q) active.push(`search: "${q}"`);
-  document.getElementById('status-showing').textContent =
-    `${filtered.length} of ${allArticles.length} articles`;
-  document.getElementById('status-filter').textContent =
-    active.length ? `Filtered by ${active.join(', ')}` : '';
+
+  if (dateFilterActive) {
+    const df = document.getElementById('date-from')?.value || '';
+    const dt = document.getElementById('date-to')?.value || '';
+    if (df || dt) active.push(`date range`);
+  }
+
+  const ss = document.getElementById('status-showing');
+  const sf = document.getElementById('status-filter');
+
+  if (ss) ss.textContent = `${filtered.length} of ${allArticles.length} articles`;
+  if (sf) sf.textContent = active.length ? `Filtered by ${active.join(', ')}` : '';
 }
+
 
 // ── Preview ───────────────────────────────────────────────────────────────
 function selectArticle(id) {
@@ -1083,17 +1123,18 @@ function selectArticle(id) {
 
   const panel = document.getElementById('preview-content');
   const empty = document.getElementById('preview-empty');
+  if (!panel || !empty) return;
+
   empty.style.display = 'none';
   panel.style.display = 'flex';
   panel.style.flexDirection = 'column';
   panel.style.flex = '1';
   panel.style.overflow = 'hidden';
 
-  const q = document.getElementById('search-input').value.trim();
+  const q = (document.getElementById('search-input')?.value || '').trim();
   const topicTags = (a.topics || []).slice(0,3).map(t =>
     `<span class="preview-topic-tag">${esc(t)}</span>`).join(' ');
 
-  // Format body text
   const cleanedText = window.stripRedundantHeaderLines(a.text || '', a);
   const rawText = String(cleanedText).replace(/\r\n/g,'\n').replace(/\r/g,'\n').trim();
   let paras = rawText.split(/\n\s*\n+/).map(p => p.trim()).filter(Boolean);
@@ -1113,136 +1154,113 @@ function selectArticle(id) {
   panel.innerHTML = `
     <div class="readerBar"><button class="readerBack" id="readerBack" type="button">Back</button></div>
     <div class="preview-header">
-      <div class="preview-date">${a.date ? formatDate(a.date) : 'Date unknown'} &nbsp;·&nbsp; ${esc(a.filename)}</div>
-      <div class="preview-title">${esc(a.title)}</div>
+      <div class="preview-date">${a.date ? formatDate(a.date) : 'Date unknown'} &nbsp;·&nbsp; ${esc(a.filename || a.sourceFile || '')}</div>
+      <div class="preview-title">${esc(a.title || '')}</div>
       <div class="preview-meta">
         ${topicTags}
         <div class="preview-wc">${a.wordCount ? a.wordCount.toLocaleString() + ' words' : ''}</div>
       </div>
     </div>
-    <div class="preview-body">${
-      a.summary
-        ? `<div class="preview-summary"><strong>Summary</strong>${esc(a.summary)}</div><div class="divider-gap"></div><div class="summary-spacer"></div>`
-        : ''
-    }${bodyParagraphs || '<p><em>No text available for this article.</em></p>'}</div>
+    <div class="preview-body">
+      ${a.summary ? `<div class="preview-summary"><strong>Summary</strong>${esc(a.summary)}</div><div class="divider-gap"></div>` : ''}
+      ${bodyParagraphs || '<p><em>No text available for this article.</em></p>'}
+    </div>
   `;
+
+  // open reader overlay (mobile + desktop overlay mode)
+  document.body.classList.add('reader-open');
+  try { history.pushState({__readerOpen:true}, '', location.href); } catch(_) {}
 }
+
 
 // ── Events ────────────────────────────────────────────────────────────────
 function bindEvents() {
+  // Search
   const q = document.getElementById('search-input');
   if (q) q.addEventListener('input', render);
 
+  // Sort
   const sort = document.getElementById('sort-select');
   if (sort) sort.addEventListener('change', render);
 
+  // Dates (activates date filtering)
   const df = document.getElementById('date-from');
-  if (df) df.addEventListener('change', render);
-
   const dt = document.getElementById('date-to');
-  if (dt) dt.addEventListener('change', render);
 
+  if (df) df.addEventListener('change', () => { dateFilterActive = true; render(); });
+  if (dt) dt.addEventListener('change', () => { dateFilterActive = true; render(); });
+
+  // Reset
   const reset = document.getElementById('reset-btn');
   if (reset) reset.addEventListener('click', () => {
-    const q2 = document.getElementById('search-input');
-    if (q2) q2.value = '';
-    const s2 = document.getElementById('sort-select');
-    if (s2) s2.value = 'date-desc';
+    if (q) q.value = '';
+    if (sort) sort.value = 'date-desc';
+
+    // Clear date values and disable date filtering
+    if (df) df.value = '';
+    if (dt) dt.value = '';
+    dateFilterActive = false;
+
+    // Reset topic
     activeTopic = 'all';
     document.querySelectorAll('.pill').forEach(p =>
       p.classList.toggle('active', p.dataset.topic === 'all'));
-    if (typeof setDateBounds === 'function') setDateBounds();
+
     render();
   });
 
-  // Ensure pills always work (including dynamically rendered ones)
-  const pills = document.querySelectorAll('.pill');
-  pills.forEach(pill => {
-    pill.addEventListener('click', () => {
+  // Topic pills (event delegation so it works for dynamic pills)
+  const bar = document.querySelector('.topic-bar');
+  if (bar) {
+    bar.addEventListener('click', (e) => {
+      const pill = e.target && e.target.classList && e.target.classList.contains('pill') ? e.target : null;
+      if (!pill) return;
+
       activeTopic = pill.dataset.topic || 'all';
       document.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
       pill.classList.add('active');
       render();
+
+      // close filters on mobile if open
       if (document.body.classList.contains('filters-open')) {
         document.body.classList.remove('filters-open');
         const btn = document.getElementById('filterToggle');
         if (btn) btn.setAttribute('aria-expanded', 'false');
       }
     });
-  });
-}
-
-// ── Utilities ─────────────────────────────────────────────────────────────
-function esc(str) {
-  return String(str || '')
-    .replace(/&/g, '&amp;').replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-}
-
-function highlight(html, q) {
-  if (!q) return html;
-  const safe = q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  return html.replace(new RegExp(`(${safe})`, 'gi'), '<mark>$1</mark>');
-}
-
-function formatDate(isoDate) {
-  if (!isoDate) return '';
-  try {
-    const [y, m, d] = isoDate.split('-');
-    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-    return `${months[parseInt(m,10)-1]} ${parseInt(d,10)}, ${y}`;
-  } catch { return isoDate; }
-}
-
-// ── Boot ──────────────────────────────────────────────────────────────────
-loadData();
-
-// Mobile: Filters toggle
-(function(){
-  const btn = document.getElementById('filterToggle');
-  const panel = document.getElementById('filterPanel');
-  if(!btn || !panel) return;
-  btn.addEventListener('click', () => {
-    const open = document.body.classList.toggle('filters-open');
-    btn.setAttribute('aria-expanded', open ? 'true' : 'false');
-    const chev = btn.querySelector('.chev');
-    if(chev) chev.textContent = open ? '▴' : '▾';
-  });
-})();
-
-// Mobile: reader overlay open/close + browser back
-(function(){
-  function closeReader(){
-    document.body.classList.remove('reader-open');
   }
+
+  // Mobile: Filters toggle
+  (function(){
+    const btn = document.getElementById('filterToggle');
+    const panel = document.getElementById('filterPanel');
+    if(!btn || !panel) return;
+    btn.addEventListener('click', () => {
+      const open = document.body.classList.toggle('filters-open');
+      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+      const chev = btn.querySelector('.chev');
+      if(chev) chev.textContent = open ? '▴' : '▾';
+    });
+  })();
+
+  // Reader back
   document.addEventListener('click', (e) => {
     if (e.target && e.target.id === 'readerBack'){
-      if (history.state && history.state.__readerOpen){
-        history.back();
-      } else {
-        closeReader();
-      }
+      try { history.back(); } catch(_) { document.body.classList.remove('reader-open'); }
     }
   });
 
   window.addEventListener('popstate', (e) => {
-    if (!(e.state && e.state.__readerOpen)) closeReader();
-  });
-
-  // Patch selectArticle to open reader + push state (mobile)
-  const _orig = window.selectArticle;
-  if (typeof _orig === 'function'){
-    window.selectArticle = function(id){
-      _orig(id);
-      const wasOpen = document.body.classList.contains('reader-open');
-      document.body.classList.add('reader-open');
-      if (!wasOpen){
-        try { history.pushState({__readerOpen:true}, '', location.href); } catch(_) {}
-      }
+    // if we popped out of reader state, close it
+    if (!(e.state && e.state.__readerOpen)) {
+      document.body.classList.remove('reader-open');
     }
-  }
-})();
+  });
+}
 
+
+// ── Boot ──────────────────────────────────────────────────────────────────
+loadData();
 </script>
 </body>
 </html>
