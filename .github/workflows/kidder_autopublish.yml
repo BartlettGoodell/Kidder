@@ -39,24 +39,34 @@ jobs:
           python scripts/email_ingest.py --folder KIDDER_ARTICLE_ARCHIVES || CODE=$?
           echo "INGEST_CODE=$CODE" >> "$GITHUB_ENV"
 
-          # Only fail if it's a real error.
-          # 0 = no new emails, 8 = new attachments saved
+          # Acceptable:
+          # 0 = no new emails
+          # 8 = saved at least one attachment
           if [ "$CODE" -ne 0 ] && [ "$CODE" -ne 8 ]; then
             exit "$CODE"
           fi
 
-      - name: Process articles (incremental + prune)
+      - name: Process articles (incremental)
         if: env.INGEST_CODE == '8'
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: |
+          CODE=0
           python scripts/process_articles.py \
             --folder KIDDER_ARTICLE_ARCHIVES \
             --output site/data.json \
-            --resume --prune --verbose
+            --resume --verbose || CODE=$?
+          echo "PROCESS_CODE=$CODE" >> "$GITHUB_ENV"
+
+          # Acceptable:
+          # 0 = nothing updated
+          # 8 = updated JSON
+          if [ "$CODE" -ne 0 ] && [ "$CODE" -ne 8 ]; then
+            exit "$CODE"
+          fi
 
       - name: Commit + push updated files
-        if: env.INGEST_CODE == '8'
+        if: env.PROCESS_CODE == '8'
         run: |
           git config user.name "kidder-bot"
           git config user.email "kidder-bot@users.noreply.github.com"
