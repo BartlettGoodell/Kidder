@@ -73,8 +73,8 @@ def main():
             subj = decode_mime_words(msg.get("Subject", "") or "")
             sender = decode_mime_words(msg.get("From", "") or "")
 
-            # Walk attachments
             saved_this_msg = False
+
             for part in msg.walk():
                 cdisp = part.get("Content-Disposition", "") or ""
                 if "attachment" not in cdisp.lower():
@@ -95,7 +95,6 @@ def main():
                 clean = safe_filename(Path(filename).name)
                 target = out_dir / clean
 
-                # avoid overwriting by accident
                 if target.exists():
                     stem = target.stem
                     suffix = target.suffix
@@ -114,11 +113,11 @@ def main():
                 saved_any = True
                 saved_this_msg = True
 
-            # Mark as seen if we saved something from it
             if saved_this_msg:
                 M.store(msg_id, "+FLAGS", "\\Seen")
 
-        sys.exit(10 if saved_any else 0)
+        # 0 = nothing new, 8 = new attachments saved
+        sys.exit(8 if saved_any else 0)
 
     finally:
         try:
