@@ -35,22 +35,31 @@ jobs:
           KIDDER_GMAIL_USER: ${{ secrets.KIDDER_GMAIL_USER }}
           KIDDER_GMAIL_APP_PASSWORD: ${{ secrets.KIDDER_GMAIL_APP_PASSWORD }}
         run: |
-          python scripts/email_ingest.py --folder KIDDER_ARTICLE_ARCHIVES
-          echo "INGEST_CODE=$?" >> $GITHUB_ENV
+          CODE=0
+          python scripts/email_ingest.py --folder KIDDER_ARTICLE_ARCHIVES || CODE=$?
+          echo "INGEST_CODE=$CODE" >> "$GITHUB_ENV"
+
+          # Only fail if it's a real error.
+          # 0 = no new emails, 8 = new attachments saved
+          if [ "$CODE" -ne 0 ] && [ "$CODE" -ne 8 ]; then
+            exit "$CODE"
+          fi
 
       - name: Process articles (incremental + prune)
-        if: env.INGEST_CODE == '10'
+        if: env.INGEST_CODE == '8'
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: |
-          python scripts/process_articles.py --folder KIDDER_ARTICLE_ARCHIVES --output site/data.json --resume --prune --verbose
+          python scripts/process_articles.py \
+            --folder KIDDER_ARTICLE_ARCHIVES \
+            --output site/data.json \
+            --resume --prune --verbose
 
       - name: Commit + push updated files
-        if: env.INGEST_CODE == '10'
+        if: env.INGEST_CODE == '8'
         run: |
           git config user.name "kidder-bot"
           git config user.email "kidder-bot@users.noreply.github.com"
           git add site/data.json site/state.json missing_dates.csv KIDDER_ARTICLE_ARCHIVES || true
           git commit -m "Auto publish: update archive" || exit 0
           git push
-        
