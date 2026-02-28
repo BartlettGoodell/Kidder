@@ -1145,11 +1145,13 @@ function selectArticle(id) {
   }
 
   const bodyParagraphs = paras.length
-    ? paras.map(para => {
-        const escaped = q ? highlight(esc(para), q) : esc(para);
-        return `<p>${escaped.replace(/\n/g,'<br>')}</p>`;
-      }).join('')
-    : '';
+  ? paras.map(para => {
+      // remove hard-wrap line breaks inside a paragraph
+      const normalizedPara = String(para).replace(/\s*\n\s*/g, ' ').trim();
+      const escaped = q ? highlight(esc(normalizedPara), q) : esc(normalizedPara);
+      return `<p>${escaped}</p>`;
+    }).join('')
+  : '';
 
   panel.innerHTML = `
     <div class="readerBar"><button class="readerBack" id="readerBack" type="button">Back</button></div>
