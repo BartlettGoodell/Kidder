@@ -1,0 +1,1293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rolland Kidder Opinion Archive</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,600;1,8..60,300;1,8..60,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink:        #1a1208;
+    --ink-mid:    #3d2e1a;
+    --ink-light:  #7a6650;
+    --paper:      #faf6ee;
+    --paper-mid:  #f0e9d9;
+    --paper-dark: #e2d6c0;
+    --rule:       #c8b898;
+    --accent:     #8b2020;
+    --accent-pale:#f5e8e8;
+    --mono:       'DM Mono', monospace;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { font-size: 16px; scroll-behavior: smooth; }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'Source Serif 4', Georgia, serif;
+    min-height: 100vh;
+  }
+
+  /* ── Masthead ─────────────────────────────────────────── */
+  .masthead {
+    background: var(--ink);
+    color: var(--paper);
+    padding: 2rem 3rem 1.4rem;
+    border-bottom: 4px double var(--rule);
+    position: relative;
+  }
+  .masthead-rule-top {
+  display:none;
+}
+  .masthead h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2rem, 5vw, 3.8rem);
+    font-weight: 900;
+    letter-spacing: -0.01em;
+    line-height: 1;
+    text-align: center;
+  }
+  .masthead-sub {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1.2rem;
+    margin-top: 0.5rem;
+    font-size: 0.75rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--paper-dark);
+    font-family: var(--mono);
+  }
+  .masthead-sub span::before, .masthead-sub span::after { content: '·'; margin: 0 0.4rem; }
+  .masthead-sub span:first-child::before { content: ''; }
+  .masthead-sub span:last-child::after { content: ''; }
+  #article-count-badge {
+    background: var(--accent);
+    color: white;
+    padding: 0.15rem 0.55rem;
+    border-radius: 2px;
+    font-size: 0.7rem;
+    font-weight: 500;
+  }
+
+  /* ── Controls Bar ─────────────────────────────────────── */
+  .controls {
+    background: var(--paper-mid);
+    border-bottom: 1px solid var(--rule);
+    padding: 1rem 2rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.8rem;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  }
+  .search-wrap {
+    position: relative;
+    flex: 1;
+    min-width: 200px;
+    max-width: 360px;
+  }
+  .search-wrap svg {
+    position: absolute;
+    left: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--ink-light);
+    pointer-events: none;
+  }
+  input[type="search"] {
+    width: 100%;
+    padding: 0.55rem 0.75rem 0.55rem 2.4rem;
+    border: 1.5px solid var(--rule);
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--mono);
+    font-size: 0.82rem;
+    border-radius: 2px;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  input[type="search"]:focus { border-color: var(--accent); }
+  input[type="search"]::placeholder { color: var(--ink-light); }
+
+  select, input[type="date"] {
+    padding: 0.55rem 0.75rem;
+    border: 1.5px solid var(--rule);
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--mono);
+    font-size: 0.82rem;
+    border-radius: 2px;
+    outline: none;
+    cursor: pointer;
+    transition: border-color 0.15s;
+  }
+  select:focus, input[type="date"]:focus { border-color: var(--accent); }
+
+  .date-range {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    color: var(--ink-light);
+  }
+
+  .btn {
+    padding: 0.5rem 1rem;
+    border: 1.5px solid var(--rule);
+    background: var(--paper);
+    color: var(--ink-mid);
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    letter-spacing: 0.05em;
+    border-radius: 2px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .btn:hover { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+  .btn-accent {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
+  }
+  .btn-accent:hover { background: #6b1818; border-color: #6b1818; }
+
+  .sort-label {
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    color: var(--ink-light);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  /* ── Topic Pills ──────────────────────────────────────── */
+  .topic-bar {
+    padding: 0.7rem 2rem;
+    border-bottom: 1px solid var(--rule);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+    align-items: center;
+    background: var(--paper);
+  }
+  .topic-label {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    color: var(--ink-light);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-right: 0.3rem;
+  }
+  .pill {
+    padding: 0.25rem 0.75rem;
+    border: 1.5px solid var(--rule);
+    background: var(--paper-mid);
+    color: var(--ink-mid);
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+    user-select: none;
+  }
+  .pill:hover { border-color: var(--accent); color: var(--accent); }
+  .pill.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: white;
+  }
+  .pill.all-pill { font-weight: 500; }
+
+  /* ── Layout ───────────────────────────────────────────── */
+  .layout {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    height: calc(100vh - 260px);
+  }
+  /* =========================================================
+   ALT DESKTOP BEHAVIOR (v19)
+   - Compact tile grid on desktop
+   - Full-screen reader overlay on ALL breakpoints (desktop too)
+   - Sleeker, tighter controls
+   - Hide masthead subtext
+   ========================================================= */
+
+.masthead-sub{display:none !important;}
+
+/* Reader bar should exist on desktop too */
+.readerBar{
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: var(--paper);
+  border-bottom: 1px solid rgba(43,35,26,.14);
+  padding: 10px 12px;
+  margin: 0;
+  
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+.readerBar .back{
+  border:1px solid rgba(0,0,0,.28);
+  border-radius:12px;
+  padding:10px 14px;
+  background:rgba(255,255,255,.55);
+  cursor:pointer;
+  font: 600 14px/1 'Source Serif 4', Georgia, serif;
+  letter-spacing:.06em;
+  text-transform:uppercase;
+}
+.readerBar .back:hover{background:rgba(255,255,255,.85);}
+
+@media (min-width: 901px){
+  /* Controls a bit tighter */
+  .controls{padding:10px 14px;}
+  .search-input{height:40px;}
+  .filters-btn{height:40px;}
+  .sort-select{height:40px;}
+
+  /* Tiles-only layout */
+  .layout{grid-template-columns:1fr;}
+  .tiles{grid-template-columns:repeat(3, minmax(0, 1fr)); gap: 14px;}
+  .tile{padding: 10px 12px;}
+  .tile-title{font-size:22px; line-height:1.05;}
+  .tile-meta{font-size:12px;}
+  .preview-empty{display:none;}
+
+  /* Full-screen reader overlay */
+  .preview-panel{
+    position:fixed;
+    inset:0;
+    z-index:1000;
+    background:var(--paper);
+    border-left:none;
+    box-shadow:0 10px 40px rgba(0,0,0,.25);
+    transform:translateX(105%);
+    transition:transform .24s ease;
+    overflow:auto;
+  }
+  body.reader-open .preview-panel{transform:translateX(0);}
+  body.reader-open .masthead,
+  body.reader-open .controls,
+  body.reader-open .tile-panel,
+  body.reader-open .statusbar{display:none;}
+}
+
+@media (max-width: 900px) {
+    .layout { grid-template-columns: 1fr; }
+    .preview-panel { display: none; }
+    .preview-panel.mobile-open { display: flex; position: fixed; inset: 0; z-index: 200; }
+  }
+
+  /* ── Article Grid ─────────────────────────────────────── */
+  .article-grid {
+    padding: 2.2rem 2.4rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 10px;
+    align-content: start;
+    border-right: 1px solid var(--rule);
+    height: 100%;
+    overflow-y: auto;
+  }
+
+    .article-card {
+    background: #fbf7ef;
+    border: 1px solid rgba(43,35,26,.18);
+    padding: 1.4rem 1.5rem 1.2rem;
+    cursor: pointer;
+    transition: transform .12s ease, box-shadow .18s ease, border-color .18s ease;
+    position: relative;
+    overflow: hidden;
+    min-height: 132px;
+    box-shadow: 0 10px 28px rgba(0,0,0,.05);
+  }
+  .article-card::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 4px;
+    background: rgba(200,184,152,.9);
+    transition: background 0.18s ease;
+  }
+  .article-card:hover { border-color: var(--accent); transform: translateY(-3px); box-shadow: 0 18px 38px rgba(139,32,32,0.12); }
+  .article-card:hover::before { background: var(--accent); }
+  .article-card.selected {
+    border-color: var(--accent);
+    background: var(--accent-pale);
+  }
+  .article-card.selected::before { background: var(--accent); }
+
+    .card-date{
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 0.35rem;
+
+  }
+    .card-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.28rem;
+    font-weight: 800;
+    line-height: 1.22;
+    color: var(--ink);
+    margin-bottom: 0.75rem;
+  }
+  .card-summary {
+    font-size: 0.82rem;
+    color: var(--ink-mid);
+    line-height: 1.5;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .card-footer {
+    margin-top: 0.25rem;
+  display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.4rem;
+  }
+  .card-topics {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem;
+  }
+  .card-topic {
+    font-family: var(--mono);
+    font-size: 0.58rem;
+    letter-spacing: 0.06em;
+    color: var(--accent);
+    border: 1px solid var(--accent);
+    padding: 0.1rem 0.45rem;
+    border-radius: 2px;
+  }
+  .card-wc {
+    font-family: var(--mono);
+    font-size: 0.62rem;
+    color: var(--ink-light);
+    white-space: nowrap;
+  }
+
+  /* ── Preview Panel ────────────────────────────────────── */
+  .preview-panel {
+    background: var(--paper);
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
+  }
+  .preview-empty {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: var(--ink-light);
+    gap: 1rem;
+    padding: 2rem;
+    text-align: center;
+  }
+  .preview-empty svg { opacity: 0.25; }
+  .preview-empty p {
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-size: 1.05rem;
+    color: var(--ink-light);
+  }
+
+  .preview-header {
+    padding: 1.4rem 1.6rem 1rem;
+    border-bottom: 2px solid var(--rule);
+    background: var(--paper-mid);
+    flex-shrink: 0;
+  }
+  .preview-date {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    color: var(--ink-light);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+  }
+    .preview-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.2rem;
+    font-weight: 900;
+    line-height: 1.05;
+    color: var(--ink);
+    margin-bottom: 1rem;
+  }
+  .preview-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    align-items: center;
+  }
+  .preview-topic-tag {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.07em;
+    color: white;
+    background: var(--accent);
+    padding: 0.18rem 0.55rem;
+    border-radius: 2px;
+  }
+  .preview-wc {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    color: var(--ink-light);
+    margin-left: auto;
+  }
+
+  .preview-summary {
+    padding: 0.9rem 1.6rem;
+    background: var(--accent-pale);
+    border-bottom: 1px solid var(--rule);
+    font-style: italic;
+    font-size: 0.88rem;
+    line-height: 1.6;
+    color: var(--ink-mid);
+    flex-shrink: 0;
+  }
+  .preview-summary strong {
+    font-style: normal;
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--accent);
+    display: block;
+    margin-bottom: 0.3rem;
+  }
+
+    .preview-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1.8rem 2.0rem;
+    line-height: 1.9;
+    font-size: 1.02rem;
+    color: var(--ink);
+    max-width: none;
+    width: 100%;
+    }
+  .preview-body p { margin-bottom: 1em; }
+  .preview-body p { margin-bottom: 1em; }
+
+  /* ── Status bar ───────────────────────────────────────── */
+  .statusbar {
+    padding: 0.5rem 2rem;
+    background: var(--paper-mid);
+    border-top: 1px solid var(--rule);
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    color: var(--ink-light);
+    display: flex;
+    gap: 1.5rem;
+  }
+
+  /* ── Empty / Loading states ───────────────────────────── */
+  .no-results {
+    grid-column: 1/-1;
+    text-align: center;
+    padding: 4rem 2rem;
+    color: var(--ink-light);
+    font-style: italic;
+  }
+  .loading-msg {
+    padding: 4rem 2rem;
+    text-align: center;
+    font-family: var(--mono);
+    font-size: 0.85rem;
+    color: var(--ink-light);
+    letter-spacing: 0.05em;
+  }
+
+  /* ── Highlight ────────────────────────────────────────── */
+  mark {
+    background: #ffe066;
+    color: var(--ink);
+    border-radius: 1px;
+    padding: 0 1px;
+  }
+
+  /* ── Scrollbar ────────────────────────────────────────── */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: var(--paper-mid); }
+  ::-webkit-scrollbar-thumb { background: var(--rule); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--ink-light); }
+
+/* Hide card previews (Option A) */
+.card-preview,.card-summary,.preview,.excerpt{display:none !important;}
+
+
+
+/* ===== Mobile UX upgrades ===== */
+
+/* Hide date range UI (keep markup for safety) */
+.date-range{ display:none !important; }
+
+/* Topic pills as single-row swipe carousel */
+.topic-bar{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  flex-wrap:nowrap;
+  overflow-x:auto;
+  overflow-y:hidden;
+  -webkit-overflow-scrolling:touch;
+  white-space:nowrap;
+  padding-bottom:6px;
+}
+.topic-bar .topic-label{ flex:0 0 auto; opacity:.8; }
+.topic-bar .pill{ flex:0 0 auto; }
+.topic-bar::-webkit-scrollbar{ height:6px; }
+
+/* Filters toggle button */
+.filterToggle{
+  display:none;
+  align-items:center;
+  gap:8px;
+  border:1px solid rgba(43,35,26,.28);
+  background:#fbf7ef;
+  padding:10px 12px;
+  border-radius:10px;
+  font-family: var(--mono);
+  font-size:12px;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  cursor:pointer;
+}
+.filterToggle .chev{ font-size:14px; opacity:.8; }
+
+/* Reader back bar (injected into preview content) */
+.readerBar{
+  display:none;
+}
+.readerBack{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  border:1px solid rgba(43,35,26,.28);
+  background:#fbf7ef;
+  padding: 8px 10px;
+  border-radius: 9px;
+  font-family: var(--mono);
+  font-size:12px;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  cursor:pointer;
+}
+.readerBack::before{ content:'←'; }
+
+@media (max-width: 900px){
+  /* Stack into list-only layout; reader becomes full-screen overlay */
+  .layout{
+    grid-template-columns: 1fr !important;
+  }
+
+  .preview-panel{
+    position: fixed !important;
+    inset: 0;
+    z-index: 999;
+    background: var(--paper);
+    transform: translateY(105%);
+    transition: transform .18s ease;
+    border-left: none !important;
+  }
+  body.reader-open .preview-panel{ transform: translateY(0); }
+
+  .readerBar{
+    display:flex;
+    position: sticky;
+    top: 0;
+    z-index: 1002;
+    padding: 10px 12px;
+    background: var(--paper);
+    border-bottom: 1px solid rgba(43,35,26,.14);
+  }
+
+  /* Keep preview header visible, body scrolls under it */
+  #preview-content{
+    overflow:auto !important;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+@media (max-width: 600px){
+  /* Title-only masthead */
+  .masthead-sub, .masthead .stats, .masthead .statpill, .masthead .subline{ display:none !important; }
+  .masthead{ padding: 12px 12px 10px !important; }
+  .masthead h1{ font-size: 28px !important; line-height: 1.05 !important; margin:0 !important; }
+
+  /* Controls: search + Filters button */
+  .controls{
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+    padding:12px;
+  }
+  .search-wrap{ flex:1 1 auto; min-width:0; }
+  #search-input{ width:100%; }
+  .filterToggle{ display:inline-flex; }
+
+  /* Filter panel hidden by default */
+  .filterPanel{ display:none; width:100%; margin-top:2px; padding-top:10px; border-top:1px solid rgba(43,35,26,.18); }
+  body.filters-open .filterPanel{ display:block; }
+
+  /* Tight panel: sort + topics + reset only */
+  .filterPanel .sort-label{ display:none !important; }
+  #sort-select{ width:100% !important; max-width:none !important; }
+  #reset-btn{ width:100% !important; margin-top:10px !important; }
+
+  /* Compact tiles */
+  .article-card{ padding:12px 12px 10px; min-height:110px; }
+  .card-date{ font-size:10px; margin-bottom:6px; }
+  .card-title{ font-size:16px; line-height:1.22; }
+
+  /* Preview type scale */
+  .preview-title{ font-size: 28px; line-height: 1.08; }
+  .preview-meta{ font-size: 11px; letter-spacing: .08em; }
+  .preview-body{ font-size: 16px; line-height: 1.85; }
+  .preview-summary{ font-size: 15px; line-height: 1.6; }
+.divider-gap{height:26px}
+@media (min-width:600px){.divider-gap{height:48px}}
+@media (min-width:900px){.divider-gap{height:72px}}
+/*;}
+
+.summary-spacer{height:14px;}
+@media (min-width:600px){.summary-spacer{height:18px;}}
+@media (min-width:900px){.summary-spacer{height:22px;}}
+@media (min-width: 900px){.divider-gap{height:44px;}}
+
+}
+
+
+
+/* ===== Divider gap between AI summary and article body ===== */
+.divider-gap{height:20px;}
+@media (min-width:600px){.divider-gap{height:24px;}}
+@media (min-width:900px){.divider-gap{height:28px;}}
+
+/* Ensure separation even if margins would collapse */
+.article-body, .articleBody, .article-content, .articleContent, #articleBody, [data-role="article-body"]{
+  padding-top: 20px !important;
+}
+
+
+/* Desktop: give the summary-to-body transition a little more breathing room */
+@media (min-width: 901px){
+  .summary-block, .ai-summary, .summaryBox, .summary-box, .summary, #summary, [data-role="summary"]{
+    margin-bottom: 48px !important;
+    padding-bottom: 32px !important;
+  }
+  .article-body, .articleBody, .article-content, .articleContent, #articleBody, [data-role="article-body"]{
+    padding-top: 28px !important;
+  }
+}
+
+/* Avoid extra top gap from first paragraph */
+.article-body p:first-child,
+.articleBody p:first-child,
+.article-content p:first-child,
+.articleContent p:first-child,
+#articleBody p:first-child{
+  margin-top: 0 !important;
+}
+/* ===== /Divider gap ===== */
+
+
+/* ===== v12: enforce larger gap between AI summary and article body on tablet/desktop ===== */
+.divider-gap{height:28px !important;}
+@media (min-width:600px){.divider-gap{height:72px !important;}}
+@media (min-width:900px){.divider-gap{height:110px !important;}}
+
+  body.reader-open .readerBar{display:flex;}
+
+  body.reader-open .readerBar{
+    position: sticky;
+    top: 0;
+    z-index: 60;
+    background: var(--paper);
+    padding: 0.55rem 0;
+    margin: 0 0 0.75rem 0;
+  }
+  .readerBack{
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    border: 1px solid var(--rule);
+    background: #fff8;
+    color: var(--ink);
+    padding: 0.35rem 0.65rem;
+    border-radius: 10px;
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    letter-spacing: 0.04em;
+    cursor: pointer;
+  }
+  .readerBack:hover{background:#fff;}
+</style>
+
+<style id="gapfix-v13">
+/* v13: enforce visible space between AI summary card and first article line on tablet/desktop */
+.divider-gap{display:block;height:28px !important;}
+@media (min-width:600px){.divider-gap{height:64px !important;}}
+@media (min-width:900px){.divider-gap{height:84px !important;}}
+
+/* === v16 patch: normalize summary->article gap across all breakpoints === */
+.divider-gap{display:block;height:18px !important;min-height:18px !important;}
+.summary-spacer{display:none !important;height:0 !important;min-height:0 !important;margin:0 !important;padding:0 !important;}
+/* Prevent default paragraph top-margins from fighting the divider gap */
+.preview-body p{margin-top:0 !important;}
+
+</style>
+
+</head>
+<body>
+
+<!-- MASTHEAD -->
+<header class="masthead">
+  <div class="masthead-rule-top"></div>
+  <h1>Rolland Kidder Opinion Archive</h1>
+  <div class="masthead-sub">
+    <span>Jamestown Post-Journal</span>
+    <span id="article-count-badge">—</span>
+    <span id="year-range-badge">Loading…</span>
+  </div>
+</header>
+
+<!-- CONTROLS -->
+<div class="controls">
+  <div class="search-wrap">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+    <input type="search" id="search-input" placeholder="Search titles, text, summaries…" autocomplete="off">
+    <button class="filterToggle" id="filterToggle" type="button" aria-expanded="false" aria-controls="filterPanel">Filters <span class="chev" aria-hidden="true">▾</span></button>
+  </div>
+
+  <div class="filterPanel" id="filterPanel">
+  <span class="sort-label">Sort:</span>
+  <select id="sort-select">
+    <option value="date-desc">Date — Newest first</option>
+    <option value="date-asc">Date — Oldest first</option>
+    <option value="title-asc">Title A–Z</option>
+    <option value="title-desc">Title Z–A</option>
+    <option value="wc-desc">Word Count ↓</option>
+  </select>
+
+  <div class="date-range">
+    From <input type="date" id="date-from">
+    to   <input type="date" id="date-to">
+  </div>
+
+  <button class="btn" id="reset-btn">Reset filters</button>
+</div>
+
+<!-- TOPIC BAR -->
+<div class="topic-bar">
+  <span class="topic-label">Topic:</span>
+  <span class="pill all-pill active" data-topic="all">All</span>
+  <!-- populated by JS -->
+</div>
+
+</div><!-- /filterPanel -->
+
+<!-- MAIN LAYOUT -->
+<div class="layout">
+  <!-- Article Grid -->
+  <div class="article-grid" id="article-grid">
+    <div class="loading-msg">Loading articles… please wait.</div>
+  </div>
+
+  <!-- Preview Panel -->
+  <aside class="preview-panel" id="preview-panel">
+    <button id="readerBack" class="reader-back-btn" type="button">← Back</button>
+<div class="preview-empty" id="preview-empty">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+        <polyline points="14 2 14 8 20 8"/>
+        <line x1="16" y1="13" x2="8" y2="13"/>
+        <line x1="16" y1="17" x2="8" y2="17"/>
+        <polyline points="10 9 9 9 8 9"/>
+      </svg>
+      <p>Select an article to read it here</p>
+    </div>
+    <div id="preview-content" style="display:none; flex-direction:column; flex:1; overflow:hidden; flex: 1 1 auto;">
+    </div>
+  </aside>
+</div>
+
+<!-- STATUS BAR -->
+<div class="statusbar">
+  <span id="status-showing">0 articles shown</span>
+  <span id="status-filter"></span>
+</div>
+
+
+<script>
+
+// ===== Global helpers (must exist before init) =====
+window._normLine = function(s){
+  return String(s || '')
+    .replace(/\s+/g,' ')
+    .replace(/[“”]/g,'"')
+    .replace(/[’]/g,"'")
+    .trim()
+    .toLowerCase();
+};
+
+window.stripRedundantHeaderLines = function(text, a){
+  try{
+    let t = String(text || '').replace(/\r\n/g,'\n').replace(/\r/g,'\n').trim();
+    if(!t) return t;
+
+    const lines = t.split('\n').map(l => l.trim()).filter(Boolean);
+    const wantTitle = window._normLine(a && a.title);
+    const wantDate  = window._normLine(a && a.date ? formatDate(a.date) : '');
+
+    const check = new Set([
+      wantTitle,
+      wantDate,
+      'local commentaries',
+      'local commentary',
+      'opinion & commentary',
+      'opinion and commentary',
+      'opinion & commentaries',
+      'opinion and commentaries',
+      'rolland kidder',
+      'by rolland kidder'
+    ]);
+
+    let i = 0;
+    while(i < lines.length && i < 12){
+      const n = window._normLine(lines[i]);
+      if(n && check.has(n)){ i += 1; continue; }
+      if(wantTitle && n && n.replace(/[^a-z0-9 ]/g,'') === wantTitle.replace(/[^a-z0-9 ]/g,'')){
+        i += 1; continue;
+      }
+      // Common pattern: "TITLE  Local Commentaries  DATE  Rolland Kidder"
+      if(n.startsWith('local commentar')) { i += 1; continue; }
+      break;
+    }
+    return lines.slice(i).join('\n\n').trim();
+  } catch(e){
+    return String(text || '').trim();
+  }
+};
+// ===== /Global helpers =====
+
+
+// ── State ──────────────────────────────────────────────────────────────────
+let allArticles = [];
+let selectedId = null;
+let activeTopic = 'all';
+
+// ── Load data ──────────────────────────────────────────────────────────────
+async function loadData() {
+  try {
+    const res = await fetch('data.json');
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const json = await res.json();
+    allArticles = (json.articles || []).map((a, i) => ({ ...a, _id: i }));
+    init();
+  } catch (e) {
+    document.getElementById('article-grid').innerHTML =
+      `<div class="no-results">
+        <strong>Could not load data.json</strong><br><br>
+        Make sure <code>data.json</code> is in the same folder as this HTML file,<br>
+        then open it via a local server or double-click (some browsers block local JSON).<br><br>
+        <small style="color:var(--ink-light)">${e.message}</small>
+      </div>`;
+  }
+}
+
+// ── Init ───────────────────────────────────────────────────────────────────
+function init() {
+  buildTopicBar();
+  setDateBounds();
+  updateBadge();
+  render();
+  bindEvents();
+}
+
+function buildTopicBar() {
+  const counts = {};
+  allArticles.forEach(a => (a.topics || []).forEach(t => {
+    counts[t] = (counts[t] || 0) + 1;
+  }));
+  const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+  const bar = document.querySelector('.topic-bar');
+  sorted.forEach(([topic, count]) => {
+    const pill = document.createElement('span');
+    pill.className = 'pill';
+    pill.dataset.topic = topic;
+    pill.textContent = `${topic} (${count})`;
+    pill.addEventListener('click', () => {
+      activeTopic = topic;
+      document.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+      pill.classList.add('active');
+      render();
+    });
+    bar.appendChild(pill);
+  });
+}
+
+function setDateBounds() {
+  const dates = allArticles.map(a => a.date).filter(Boolean).sort();
+  if (!dates.length) return;
+  document.getElementById('date-from').value = dates[0];
+  document.getElementById('date-to').value   = dates[dates.length - 1];
+  document.getElementById('year-range-badge').textContent =
+    `${dates[0].slice(0,4)}–${dates[dates.length-1].slice(0,4)}`;
+}
+
+function updateBadge() {
+  document.getElementById('article-count-badge').textContent = allArticles.length + ' articles';
+}
+
+// ── Filtering & Sorting ───────────────────────────────────────────────────
+function getFiltered() {
+  const q   = document.getElementById('search-input').value.trim().toLowerCase();
+  const df  = document.getElementById('date-from').value;
+  const dt  = document.getElementById('date-to').value;
+  const sort = document.getElementById('sort-select').value;
+
+  let results = allArticles.filter(a => {
+    // Topic filter
+    if (activeTopic !== 'all' && !(a.topics || []).includes(activeTopic)) return false;
+    // Date filter
+    if (df || dt) {
+      // If user is filtering by date, hide undated items
+      if (!a.date) return false;
+      if (df && a.date < df) return false;
+      if (dt && a.date > dt) return false;
+    }
+    // Search
+    if (q) {
+      const haystack = [a.title, a.summary, a.text, (a.topics||[]).join(' ')].join(' ').toLowerCase();
+      if (!haystack.includes(q)) return false;
+    }
+    return true;
+  });
+
+  results.sort((a, b) => {
+    const da = a.date || '0000-00-00';
+    const db = b.date || '0000-00-00';
+    if (sort === 'date-desc') return db.localeCompare(da);
+    if (sort === 'date-asc')  return da.localeCompare(db);
+    if (sort === 'title-asc') return a.title.localeCompare(b.title);
+    if (sort === 'title-desc') return b.title.localeCompare(a.title);
+    if (sort === 'wc-desc')   return (b.wordCount||0) - (a.wordCount||0);
+    return 0;
+  });
+
+  return results;
+}
+
+// ── Render ────────────────────────────────────────────────────────────────
+function render() {
+  const q = document.getElementById('search-input').value.trim();
+  const filtered = getFiltered();
+  const grid = document.getElementById('article-grid');
+
+  grid.innerHTML = '';
+
+  if (!filtered.length) {
+    grid.innerHTML = '<div class="no-results">No articles match the current filters.</div>';
+    document.getElementById('status-showing').textContent = '0 articles shown';
+    document.getElementById('status-filter').textContent = '';
+    return;
+  }
+
+  filtered.forEach(a => {
+    const card = document.createElement('div');
+    card.className = 'article-card' + (a._id === selectedId ? ' selected' : '');
+    card.dataset.id = a._id;
+
+    const dateStr = a.date ? formatDate(a.date) : '(date unknown)';
+    const topicHtml = (a.topics || []).slice(0,3).map(t =>
+      `<span class="card-topic">${esc(t)}</span>`).join('');
+    const summaryHtml = q ? highlight(esc(a.summary || ''), q) : esc(a.summary || '');
+    const titleHtml   = q ? highlight(esc(a.title), q) : esc(a.title);
+
+    card.innerHTML = `
+      <div class="card-date">${dateStr}</div>
+      <div class="card-title">${titleHtml}</div>
+<div class="card-footer">
+        <div class="card-topics">${topicHtml}</div>
+        <div class="card-wc">${a.wordCount ? a.wordCount.toLocaleString() + ' wds' : ''}</div>
+      </div>`;
+
+    card.addEventListener('click', () => selectArticle(a._id));
+    grid.appendChild(card);
+  });
+
+  // Status bar
+  const active = [];
+  if (activeTopic !== 'all') active.push(`topic: ${activeTopic}`);
+  if (q) active.push(`search: "${q}"`);
+  document.getElementById('status-showing').textContent =
+    `${filtered.length} of ${allArticles.length} articles`;
+  document.getElementById('status-filter').textContent =
+    active.length ? `Filtered by ${active.join(', ')}` : '';
+}
+
+// ── Preview ───────────────────────────────────────────────────────────────
+function selectArticle(id) {
+  selectedId = id;
+  const a = allArticles.find(x => x._id === id);
+  if (!a) return;
+
+  // Update card selection state
+  document.querySelectorAll('.article-card').forEach(c => {
+    c.classList.toggle('selected', parseInt(c.dataset.id) === id);
+  });
+
+  const panel = document.getElementById('preview-content');
+  const empty = document.getElementById('preview-empty');
+  empty.style.display = 'none';
+  panel.style.display = 'flex';
+  panel.style.flexDirection = 'column';
+  panel.style.flex = '1';
+  panel.style.overflow = 'hidden';
+
+  const q = document.getElementById('search-input').value.trim();
+  const topicTags = (a.topics || []).slice(0,3).map(t =>
+    `<span class="preview-topic-tag">${esc(t)}</span>`).join(' ');
+
+  // Format body text — paragraphs if present, otherwise sentence-based fallback
+  const cleanedText = window.stripRedundantHeaderLines(a.text || '', a);
+  const rawText = String(cleanedText).replace(/\r\n/g,'\n').replace(/\r/g,'\n').trim();
+  let paras = rawText.split(/\n\s*\n+/).map(p => p.trim()).filter(Boolean);
+
+  if (paras.length <= 1 && rawText.length) {
+    paras = rawText.replace(/([.?!])\s+(?=[A-Z])/g, '$1\n\n')
+      .split(/\n\s*\n+/).map(p => p.trim()).filter(Boolean);
+  }
+
+  const bodyParagraphs = paras.length
+    ? paras.map(para => {
+        const escaped = q ? highlight(esc(para), q) : esc(para);
+        return `<p>${escaped.replace(/\n/g,'<br>')}</p>`;
+      }).join('')
+    : '';
+
+panel.innerHTML = `
+    <div class="readerBar"><button class="readerBack" id="readerBack" type="button">Back</button></div>
+    <div class="preview-header">
+      <div class="preview-date">${a.date ? formatDate(a.date) : 'Date unknown'} &nbsp;·&nbsp; ${esc(a.filename)}</div>
+      <div class="preview-title">${esc(a.title)}</div>
+      <div class="preview-meta">
+        ${topicTags}
+        <div class="preview-wc">${a.wordCount ? a.wordCount.toLocaleString() + ' words' : ''}</div>
+      </div>
+    </div>
+    <div class="preview-body">${a.summary ? `<div class="preview-summary"><strong>Summary</strong>${esc(a.summary)}</div><div class="divider-gap"></div><div class="summary-spacer"></div>` : ''}${bodyParagraphs || '<p><em>No text available for this article.</em></p>'}</div>
+  `;
+}
+
+// ── Events ────────────────────────────────────────────────────────────────
+function bindEvents() {
+  const q = document.getElementById('search-input');
+  if (q) q.addEventListener('input', render);
+
+  const sort = document.getElementById('sort-select');
+  if (sort) sort.addEventListener('change', render);
+
+  const df = document.getElementById('date-from');
+  if (df) df.addEventListener('change', render);
+
+  const dt = document.getElementById('date-to');
+  if (dt) dt.addEventListener('change', render);
+
+  const reset = document.getElementById('reset-btn');
+  if (reset) reset.addEventListener('click', () => {
+    const q2 = document.getElementById('search-input');
+    if (q2) q2.value = '';
+    const s2 = document.getElementById('sort-select');
+    if (s2) s2.value = 'date-desc';
+    activeTopic = 'all';
+    document.querySelectorAll('.pill').forEach(p =>
+      p.classList.toggle('active', p.dataset.topic === 'all'));
+    if (typeof setDateBounds === 'function') setDateBounds();
+    render();
+  });
+
+  // Ensure pills always work (including dynamically rendered ones)
+  const pills = document.querySelectorAll('.pill');
+  pills.forEach(pill => {
+    pill.addEventListener('click', () => {
+      activeTopic = pill.dataset.topic || 'all';
+      document.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+      pill.classList.add('active');
+      render();
+      // On mobile, if filters are open, close them after choosing a topic
+      if (document.body.classList.contains('filters-open')) {
+        document.body.classList.remove('filters-open');
+        const btn = document.getElementById('filterToggle');
+        if (btn) btn.setAttribute('aria-expanded', 'false');
+      }
+    });
+  });
+}
+
+// ── Utilities ─────────────────────────────────────────────────────────────
+function esc(str) {
+  return String(str || '')
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function highlight(html, q) {
+  if (!q) return html;
+  const safe = q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return html.replace(new RegExp(`(${safe})`, 'gi'), '<mark>$1</mark>');
+}
+
+function formatDate(isoDate) {
+  if (!isoDate) return '';
+  try {
+    const [y, m, d] = isoDate.split('-');
+    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    return `${months[parseInt(m,10)-1]} ${parseInt(d,10)}, ${y}`;
+  } catch { return isoDate; }
+
+window._normLine = function(s){
+  return String(s || '')
+    .replace(/\s+/g,' ')
+    .replace(/[“”]/g,'"')
+    .replace(/[’]/g,"'")
+    .trim()
+    .toLowerCase();
+}
+
+// Remove stacked header lines at the start of body text that duplicate the preview header.
+window.stripRedundantHeaderLines = function(text, a){
+  let t = String(text || '').replace(/\r\n/g,'\n').replace(/\r/g,'\n').trim();
+  if(!t) return t;
+
+  const lines = t.split('\n').map(l => l.trim()).filter(Boolean);
+  const wantTitle = _normLine(a && a.title);
+  const wantDate  = _normLine(a && a.date ? formatDate(a.date) : '');
+
+  const check = new Set([
+    wantTitle,
+    wantDate,
+    'local commentaries',
+    'local commentary',
+    'opinion & commentary',
+    'opinion and commentary',
+    'opinion & commentaries',
+    'opinion and commentaries',
+    'rolland kidder',
+    'by rolland kidder'
+  ]);
+
+  let i = 0;
+  while(i < lines.length && i < 10){
+    const n = _normLine(lines[i]);
+    if(n && check.has(n)){
+      i += 1; continue;
+    }
+    // Title match ignoring punctuation
+    if(wantTitle && n && n.replace(/[^a-z0-9 ]/g,'') === wantTitle.replace(/[^a-z0-9 ]/g,'')){
+      i += 1; continue;
+    }
+    break;
+  }
+
+  return lines.slice(i).join('\n\n').trim();
+}
+
+}
+
+
+function renderTextToHtml(text){
+  if(!text) return "";
+  text = String(text).replace(/\r\n/g, "\n").replace(/\r/g, "\n");
+  const paras = text.split(/\n\s*\n+/).map(p => p.trim()).filter(Boolean);
+  if(paras.length <= 1){
+    const safe = escapeHtml(text.trim());
+    return safe.replace(/\n/g, "<br>");
+  }
+  return paras.map(p => `<p>${escapeHtml(p).replace(/\n/g,"<br>")}</p>`).join("");
+}
+
+function escapeHtml(str){
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+
+// ── Boot ──────────────────────────────────────────────────────────────────
+loadData();
+
+// Mobile: Filters toggle
+(function(){
+  const btn = document.getElementById('filterToggle');
+  const panel = document.getElementById('filterPanel');
+  if(!btn || !panel) return;
+  btn.addEventListener('click', () => {
+    const open = document.body.classList.toggle('filters-open');
+    btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    const chev = btn.querySelector('.chev');
+    if(chev) chev.textContent = open ? '▴' : '▾';
+  });
+})();
+
+// Mobile: reader overlay open/close + browser back
+(function(){
+  function closeReader(){
+    document.body.classList.remove('reader-open');
+  }
+  document.addEventListener('click', (e) => {
+    if (e.target && e.target.id === 'readerBack'){
+      if (history.state && history.state.__readerOpen){
+        history.back();
+      } else {
+        closeReader();
+      }
+    }
+  });
+
+  window.addEventListener('popstate', (e) => {
+    if (!(e.state && e.state.__readerOpen)) closeReader();
+  });
+
+  // Patch selectArticle to open reader + push state (mobile)
+  const _orig = window.selectArticle;
+  if (typeof _orig === 'function'){
+    window.selectArticle = function(id){
+      _orig(id);
+      if (true){
+        const wasOpen = document.body.classList.contains('reader-open');
+        document.body.classList.add('reader-open');
+        if (!wasOpen){
+          try { history.pushState({__readerOpen:true}, '', location.href); } catch(_) {}
+        }
+      }
+    }
+  }
+})();
+
+</script>
+</body>
+</html>
