@@ -236,7 +236,7 @@ def main():
     docx_files = sorted(folder.glob("*.docx"))
     print(f"Found {len(docx_files)} .docx files in {folder}")
 
-pruned_count = 0
+    pruned_count = 0
 
     api_key = args.api_key or os.getenv("OPENAI_API_KEY", "")
     if not api_key:
