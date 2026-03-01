@@ -33,7 +33,7 @@
 
   .masthead{
   position: relative;
-  height: 100px; /* tighter than before */
+  height: clamp(100px, 13vw, 170px)px; /* tighter than before */
   overflow: hidden;
 
   background-image:
@@ -62,8 +62,8 @@
 
 .masthead-title{
   font-family: "Bodoni Old Style", serif;
-  font-size: 72px; /* much closer to previous feel */
-  letter-spacing: 0.10em;
+  font-size: clamp(30px, 5.5vw, 70px);; /* much closer to previous feel */
+  letter-spacing: 0.0em;
   line-height: 0.95;
   color: rgba(255,255,255,.95);
   text-shadow: 0 6px 14px rgba(0,0,0,.35);
@@ -72,8 +72,8 @@
 .masthead-subtitle{
   margin-top: 6px;
   font-family: "Bodoni Old Style", serif;
-  font-size: 22px;
-  letter-spacing: 0.60em;
+  font-size: font-size: clamp(12px, 1.8vw, 22px)px;
+  letter-spacing: 0.30em;
   text-transform: uppercase;
   color: rgba(255,255,255,.9);
 }
@@ -82,7 +82,7 @@
   position: absolute;
   right: 20px;
   bottom: 0;
-  height: 175px;
+  height: 100px;
   width: auto;
   pointer-events: none;
 }
