@@ -2,8 +2,17 @@ name: Kidder Auto Publish
 
 on:
   schedule:
-    - cron: "*/10 * * * *"
+    - cron: "0 */2 * * *"
   workflow_dispatch:
+    inputs:
+      rebuild:
+        description: "Rebuild data.json even if no new emails (also prunes removed docx)"
+        required: false
+        default: "false"
+        type: choice
+        options:
+          - "false"
+          - "true"
 
 permissions:
   contents: write
@@ -46,8 +55,25 @@ jobs:
             exit "$CODE"
           fi
 
-      - name: Process articles (incremental)
-        if: env.INGEST_CODE == '8'
+      - name: Decide whether to process
+        run: |
+          SHOULD_PROCESS=0
+
+          # If new email ingested, process
+          if [ "${{ env.INGEST_CODE }}" = "8" ]; then
+            SHOULD_PROCESS=8
+          fi
+
+          # If manual dispatch rebuild=true, process even without new emails
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ inputs.rebuild }}" = "true" ]; then
+            SHOULD_PROCESS=8
+          fi
+
+          echo "SHOULD_PROCESS=$SHOULD_PROCESS" >> "$GITHUB_ENV"
+          echo "Will process? $SHOULD_PROCESS"
+
+      - name: Process articles (incremental + prune)
+        if: env.SHOULD_PROCESS == '8'
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: |
@@ -55,7 +81,7 @@ jobs:
           python scripts/process_articles.py \
             --folder KIDDER_ARTICLE_ARCHIVES \
             --output site/data.json \
-            --resume --verbose || CODE=$?
+            --resume --prune --verbose || CODE=$?
           echo "PROCESS_CODE=$CODE" >> "$GITHUB_ENV"
 
           # Acceptable:
