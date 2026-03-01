@@ -2,11 +2,11 @@ name: Kidder Auto Publish
 
 on:
   schedule:
-    - cron: "0 */2 * * *"
+    - cron: "0 */4 * * *"
   workflow_dispatch:
     inputs:
       rebuild:
-        description: "Rebuild data.json even if no new emails (also prunes removed docx)"
+        description: "Force reprocess (use after deletions/renames/metadata fixes)"
         required: false
         default: "false"
         type: choice
@@ -55,25 +55,8 @@ jobs:
             exit "$CODE"
           fi
 
-      - name: Decide whether to process
-        run: |
-          SHOULD_PROCESS=0
-
-          # If new email ingested, process
-          if [ "${{ env.INGEST_CODE }}" = "8" ]; then
-            SHOULD_PROCESS=8
-          fi
-
-          # If manual dispatch rebuild=true, process even without new emails
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ inputs.rebuild }}" = "true" ]; then
-            SHOULD_PROCESS=8
-          fi
-
-          echo "SHOULD_PROCESS=$SHOULD_PROCESS" >> "$GITHUB_ENV"
-          echo "Will process? $SHOULD_PROCESS"
-
       - name: Process articles (incremental + prune)
-        if: env.SHOULD_PROCESS == '8'
+        if: env.INGEST_CODE == '8' || github.event.inputs.rebuild == 'true'
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: |
