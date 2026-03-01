@@ -236,20 +236,7 @@ def main():
     docx_files = sorted(folder.glob("*.docx"))
     print(f"Found {len(docx_files)} .docx files in {folder}")
 
-    if args.prune:
-        existing_names = {p.name for p in docx_files}
-        pruned = 0
-        kept = []
-        for a in articles:
-            sf = a.get("sourceFile")
-            if sf and sf not in existing_names:
-                pruned += 1
-                continue
-            kept.append(a)
-        articles = kept
-        existing["articles"] = articles
-        if pruned and args.verbose:
-            print(f"Pruned {pruned} articles not found in folder.")
+pruned_count = 0
 
     api_key = args.api_key or os.getenv("OPENAI_API_KEY", "")
     if not api_key:
@@ -383,7 +370,10 @@ def main():
     print(f"Output: {out_json}")
     print(f"State:  {state_path}")
 
-    sys.exit(8 if updated > 0 else 0)
+    # Exit codes:
+    # 0 = nothing updated
+    # 8 = updated JSON (including prune-only changes)
+    sys.exit(8 if (updated > 0 or pruned_count > 0) else 0)
 
 
 if __name__ == "__main__":
