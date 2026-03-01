@@ -60,7 +60,7 @@ def save_json(path: Path, data):
 def run_pandoc_extract(docx_path: Path) -> str:
     try:
         res = subprocess.run(
-            ["pandoc", str(docx_path), "-t", "plain"],
+            ["pandoc", str(docx_path), "-t", "plain", "--wrap=none"],
             capture_output=True,
             text=True,
             check=False,
