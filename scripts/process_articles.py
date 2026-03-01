@@ -241,9 +241,15 @@ def main():
         if args.verbose:
             print(f"[{i}/{len(docx_files)}] Processing: {p.name}")
 
-        text = run_pandoc_extract(p) or docx_extract_fallback(p)
-        text = normalize_whitespace(text)
-        wc = word_count(text)
+    text = run_pandoc_extract(p) or docx_extract_fallback(p)
+
+text = normalize_whitespace(text)
+
+# 🔧 FIX HARD-WRAPPED DOCX LINES
+# Convert single newlines to spaces, keep real paragraph breaks
+text = re.sub(r"\n(?!\n)", " ", text)
+
+wc = word_count(text)
 
         if wc == 0:
             if args.verbose:
