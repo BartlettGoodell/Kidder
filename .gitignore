@@ -1,1 +1,10 @@
 .DS_Store
+# Local secrets
+.env_kidder
+
+# Netlify local state
+.netlify/
+
+# macOS + Office junk
+.DS_Store
+~$*.docx
