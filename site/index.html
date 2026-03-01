@@ -1146,9 +1146,13 @@ function selectArticle(id) {
 
   const bodyParagraphs = paras.length
   ? paras.map(para => {
-      // remove hard-wrap line breaks inside a paragraph
-      const normalizedPara = String(para).replace(/\s*\n\s*/g, ' ').trim();
-      const escaped = q ? highlight(esc(normalizedPara), q) : esc(normalizedPara);
+      // Convert any leftover single line breaks into spaces
+      const normalized = String(para)
+        .replace(/\s*\n\s*/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+
+      const escaped = q ? highlight(esc(normalized), q) : esc(normalized);
       return `<p>${escaped}</p>`;
     }).join('')
   : '';
