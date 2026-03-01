@@ -242,23 +242,22 @@ def main():
             print(f"[{i}/{len(docx_files)}] Processing: {p.name}")
 
     text = run_pandoc_extract(p) or docx_extract_fallback(p)
-
 text = normalize_whitespace(text)
 
 # 🔧 FIX HARD-WRAPPED DOCX LINES
 # Convert single newlines to spaces, keep real paragraph breaks
+# After normalize_whitespace, paragraphs are separated by \n\n.
 text = re.sub(r"\n(?!\n)", " ", text)
 
 wc = word_count(text)
 
-        if wc == 0:
-            if args.verbose:
-                print(f"  SKIP (0 words): {p.name}")
-            state.setdefault("files", {})[p.name] = file_hash
-            continue
+if wc == 0:
+    if args.verbose:
+        print(f"  SKIP (0 words): {p.name}")
+    state.setdefault("files", {})[p.name] = file_hash
+    continue
 
-        date_guess = parse_date_from_filename(p.name) or parse_date_from_text(text) or ""
-
+date_guess = parse_date_from_filename(p.name) or parse_date_from_text(text) or ""
         try:
             meta = openai_infer(client, args.model, text)
             title = (meta.get("title") or "").strip() or p.stem
