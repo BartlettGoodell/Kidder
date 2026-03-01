@@ -1217,41 +1217,39 @@ function selectArticle(id) {
   panel.style.overflow = 'hidden';
 
   const q = (document.getElementById('search-input')?.value || '').trim();
-  const topicTags = (a.topics || []).slice(0,3).map(t =>
-    `<span class="preview-topic-tag">${esc(t)}</span>`).join(' ');
+  const topicTags = (a.topics || []).slice(0, 3).map(t =>
+    `<span class="preview-topic-tag">${esc(t)}</span>`
+  ).join(' ');
 
+  // 1) Remove redundant header lines
   const cleanedText = window.stripRedundantHeaderLines(a.text || '', a);
-  const rawText = String(cleanedText).replace(/\r\n/g,'\n').replace(/\r/g,'\n').trim();
-  let paras = rawText.split(/\n\s*\n+/).map(p => p.trim()).filter(Boolean);
 
-  if (paras.length <= 1 && rawText.length) {
-    paras = rawText.replace(/([.?!])\s+(?=[A-Z])/g, '$1\n\n')
-      .split(/\n\s*\n+/).map(p => p.trim()).filter(Boolean);
-  }
+  // 2) Repair hard wrapping (the actual problem)
+  const paragraphs = repairHardWrapToParagraphs(cleanedText);
 
-  const bodyParagraphs = paras.length
-  ? paras.map(para => {
-      // Convert any leftover single line breaks into spaces
-      const normalized = String(para)
-        .replace(/\s*\n\s*/g, ' ')
-        .replace(/\s+/g, ' ')
-        .trim();
-
-      const escaped = q ? highlight(esc(normalized), q) : esc(normalized);
-      return `<p>${escaped}</p>`;
-    }).join('')
-  : '';
+  const bodyParagraphs = paragraphs.length
+    ? paragraphs.map(p => {
+        const escaped = q ? highlight(esc(p), q) : esc(p);
+        return `<p>${escaped}</p>`;
+      }).join('')
+    : '';
 
   panel.innerHTML = `
-    <div class="readerBar"><button class="readerBack" id="readerBack" type="button">Back</button></div>
+    <div class="readerBar">
+      <button class="readerBack" id="readerBack" type="button">Back</button>
+    </div>
+
     <div class="preview-header">
-      <div class="preview-date">${a.date ? formatDate(a.date) : 'Date unknown'} &nbsp;·&nbsp; ${esc(a.filename || a.sourceFile || '')}</div>
+      <div class="preview-date">
+        ${a.date ? formatDate(a.date) : 'Date unknown'} &nbsp;·&nbsp; ${esc(a.filename || a.sourceFile || '')}
+      </div>
       <div class="preview-title">${esc(a.title || '')}</div>
       <div class="preview-meta">
         ${topicTags}
         <div class="preview-wc">${a.wordCount ? a.wordCount.toLocaleString() + ' words' : ''}</div>
       </div>
     </div>
+
     <div class="preview-body">
       ${a.summary ? `<div class="preview-summary"><strong>Summary</strong>${esc(a.summary)}</div><div class="divider-gap"></div>` : ''}
       ${bodyParagraphs || '<p><em>No text available for this article.</em></p>'}
@@ -1260,9 +1258,8 @@ function selectArticle(id) {
 
   // open reader overlay (mobile + desktop overlay mode)
   document.body.classList.add('reader-open');
-  try { history.pushState({__readerOpen:true}, '', location.href); } catch(_) {}
+  try { history.pushState({ __readerOpen: true }, '', location.href); } catch (_) {}
 }
-
 
 // ── Events ────────────────────────────────────────────────────────────────
 function bindEvents() {
