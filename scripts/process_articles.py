@@ -4,12 +4,17 @@ process_articles.py — Kidder Article Dashboard Processor (Incremental + Prune)
 ==============================================================================
 - Scans a folder of .docx files
 - Extracts text (pandoc preferred; python-docx fallback)
+- Normalizes whitespace + fixes hard-wrapped lines (keeps paragraph breaks)
 - Uses OpenAI API to infer: title, date, summary, topics
 - Writes site/data.json for your static site
 - Writes missing_dates.csv
 - Maintains site/state.json for incremental processing
 - PRUNES entries whose sourceFile no longer exists in the archive folder
 - Skips empty/zero-word extracts so you don’t end up with zombie articles
+
+Exit codes:
+- 0 = nothing updated
+- 8 = updated JSON
 """
 
 import argparse
@@ -58,6 +63,10 @@ def save_json(path: Path, data):
 
 
 def run_pandoc_extract(docx_path: Path) -> str:
+    """
+    Use pandoc to extract plain text.
+    --wrap=none prevents pandoc from inserting artificial line wraps.
+    """
     try:
         res = subprocess.run(
             ["pandoc", str(docx_path), "-t", "plain", "--wrap=none"],
@@ -73,6 +82,9 @@ def run_pandoc_extract(docx_path: Path) -> str:
 
 
 def docx_extract_fallback(docx_path: Path) -> str:
+    """
+    Fallback extraction using python-docx (paragraph-based).
+    """
     if Document is None:
         return ""
     try:
@@ -84,10 +96,33 @@ def docx_extract_fallback(docx_path: Path) -> str:
 
 
 def normalize_whitespace(s: str) -> str:
+    """
+    Normalize whitespace while preserving paragraph boundaries.
+    - Normalize newlines
+    - Collapse runs of spaces/tabs
+    - Collapse 3+ newlines to a single blank line (paragraph break)
+    """
     s = s.replace("\r\n", "\n").replace("\r", "\n")
     s = re.sub(r"[ \t]+", " ", s)
     s = re.sub(r"\n{3,}", "\n\n", s)
     return s.strip()
+
+
+def fix_hard_wrapped_lines(s: str) -> str:
+    """
+    Many doc exports contain single newlines every ~60-90 chars (hard wraps).
+    We want:
+    - Keep real paragraph breaks (blank line) as paragraph breaks
+    - Convert single newlines within a paragraph into spaces
+
+    Precondition: normalize_whitespace() has already run, so paragraphs are
+    separated by \n\n, and within a paragraph there may still be single \n.
+    """
+    # Convert single newlines to spaces, leaving \n\n intact
+    s = re.sub(r"\n(?!\n)", " ", s)
+    # Clean up any weird spacing caused by the join
+    s = re.sub(r"[ \t]+", " ", s).strip()
+    return s
 
 
 def word_count(text: str) -> int:
@@ -128,7 +163,10 @@ def parse_date_from_text(text: str):
         mon = m.group(1).lower()[:3]
         day = int(m.group(2))
         year = int(m.group(3))
-        month_map = {"jan": 1, "feb": 2, "mar": 3, "apr": 4, "may": 5, "jun": 6, "jul": 7, "aug": 8, "sep": 9, "oct": 10, "nov": 11, "dec": 12}
+        month_map = {
+            "jan": 1, "feb": 2, "mar": 3, "apr": 4, "may": 5, "jun": 6,
+            "jul": 7, "aug": 8, "sep": 9, "oct": 10, "nov": 11, "dec": 12
+        }
         mo = month_map.get(mon)
         if mo:
             try:
@@ -241,23 +279,19 @@ def main():
         if args.verbose:
             print(f"[{i}/{len(docx_files)}] Processing: {p.name}")
 
-    text = run_pandoc_extract(p) or docx_extract_fallback(p)
-text = normalize_whitespace(text)
+        text = run_pandoc_extract(p) or docx_extract_fallback(p)
+        text = normalize_whitespace(text)
+        text = fix_hard_wrapped_lines(text)
+        wc = word_count(text)
 
-# 🔧 FIX HARD-WRAPPED DOCX LINES
-# Convert single newlines to spaces, keep real paragraph breaks
-# After normalize_whitespace, paragraphs are separated by \n\n.
-text = re.sub(r"\n(?!\n)", " ", text)
+        if wc == 0:
+            if args.verbose:
+                print(f"  SKIP (0 words): {p.name}")
+            state.setdefault("files", {})[p.name] = file_hash
+            continue
 
-wc = word_count(text)
+        date_guess = parse_date_from_filename(p.name) or parse_date_from_text(text) or ""
 
-if wc == 0:
-    if args.verbose:
-        print(f"  SKIP (0 words): {p.name}")
-    state.setdefault("files", {})[p.name] = file_hash
-    continue
-
-date_guess = parse_date_from_filename(p.name) or parse_date_from_text(text) or ""
         try:
             meta = openai_infer(client, args.model, text)
             title = (meta.get("title") or "").strip() or p.stem
@@ -326,7 +360,11 @@ date_guess = parse_date_from_filename(p.name) or parse_date_from_text(text) or "
         reverse=True,
     )
 
-    payload = {"generatedAt": datetime.now().isoformat(timespec="seconds"), "articles": articles, "errors": errors}
+    payload = {
+        "generatedAt": datetime.now().isoformat(timespec="seconds"),
+        "articles": articles,
+        "errors": errors,
+    }
     save_json(out_json, payload)
     save_json(state_path, state)
 
@@ -345,12 +383,8 @@ date_guess = parse_date_from_filename(p.name) or parse_date_from_text(text) or "
     print(f"Output: {out_json}")
     print(f"State:  {state_path}")
 
-    # Exit codes:
-    # 0 = nothing updated
-    # 8 = updated JSON
     sys.exit(8 if updated > 0 else 0)
 
 
 if __name__ == "__main__":
     main()
-    
