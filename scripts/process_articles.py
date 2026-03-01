@@ -14,7 +14,7 @@ process_articles.py — Kidder Article Dashboard Processor (Incremental + Prune)
 
 Exit codes:
 - 0 = nothing updated
-- 8 = updated JSON
+- 8 = updated JSON (including prune-only changes)
 """
 
 import argparse
@@ -38,6 +38,9 @@ try:
     from openai import OpenAI
 except ImportError:
     OpenAI = None
+
+
+DUMMY_DATE_FOR_UNKNOWN = "0001-01-01"
 
 
 def sha256_file(path: Path) -> str:
@@ -237,6 +240,19 @@ def main():
     print(f"Found {len(docx_files)} .docx files in {folder}")
 
     pruned_count = 0
+    if args.prune:
+        existing_names = {p.name for p in docx_files}
+        kept = []
+        for a in articles:
+            sf = a.get("sourceFile")
+            if sf and sf not in existing_names:
+                pruned_count += 1
+                continue
+            kept.append(a)
+        articles = kept
+        existing["articles"] = articles
+        if args.verbose:
+            print(f"Pruned entries: {pruned_count}")
 
     api_key = args.api_key or os.getenv("OPENAI_API_KEY", "")
     if not api_key:
@@ -291,6 +307,11 @@ def main():
             final_date = date_guess or date_ai or ""
             date_source = "filename/text" if date_guess else ("ai" if date_ai else "")
 
+            # Use a dummy date for unknowns so UI sorting/filtering stays stable
+            if not final_date:
+                final_date = DUMMY_DATE_FOR_UNKNOWN
+                date_source = date_source or "dummy"
+
             article = {
                 "sourceFile": p.name,
                 "title": title,
@@ -319,7 +340,8 @@ def main():
 
             processed += 1
 
-            if not final_date:
+            # Missing dates are now represented by dummy date; still log them for fixing later
+            if final_date == DUMMY_DATE_FOR_UNKNOWN:
                 missing_date_rows.append([p.name, title, wc])
 
             if args.verbose:
@@ -363,7 +385,7 @@ def main():
             w.writerow(row)
 
     print("\n" + "=" * 50)
-    print(f"Done. processed={processed}, updated={updated}")
+    print(f"Done. processed={processed}, updated={updated}, pruned={pruned_count}")
     print(f"Total articles in JSON: {len(articles)}")
     print(f"Missing dates: {len(missing_date_rows)} (see {missing_csv})")
     print(f"Errors: {len(errors)}")
