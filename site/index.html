@@ -874,44 +874,59 @@ function formatDate(isoDate) {
 
 // Remove stacked header lines at the start of body text that duplicate the preview header.
 window.stripRedundantHeaderLines = function(text, a){
-  try{
-    let t = String(text || '').replace(/\r\n/g,'\n').replace(/\r/g,'\n').trim();
-    if(!t) return t;
+  let t = String(text || '').replace(/\r\n/g,'\n').replace(/\r/g,'\n').trim();
+  if(!t) return t;
 
-    const lines = t.split('\n').map(l => l.trim()).filter(Boolean);
-    const wantTitle = window._normLine(a && a.title);
-    const wantDate  = window._normLine(a && a.date ? formatDate(a.date) : '');
+  const lines = t.split('\n').map(l => l.trim()).filter(Boolean);
 
-    const check = new Set([
-      wantTitle,
-      wantDate,
-      'local commentaries',
-      'local commentary',
-      'opinion & commentary',
-      'opinion and commentary',
-      'opinion & commentaries',
-      'opinion and commentaries',
-      'rolland kidder',
-      'by rolland kidder'
-    ]);
+  const wantTitle = window._normLine(a && a.title);
+  const wantDate  = window._normLine(a && a.date ? formatDate(a.date) : '');
 
-    let i = 0;
-    while(i < lines.length && i < 12){
-      const n = window._normLine(lines[i]);
-      if(n && check.has(n)){ i += 1; continue; }
+  const check = new Set([
+    wantTitle,
+    wantDate,
+    'local commentaries',
+    'local commentary',
+    'opinion & commentary',
+    'opinion and commentary',
+    'opinion & commentaries',
+    'opinion and commentaries',
+    'rolland kidder',
+    'by rolland kidder'
+  ]);
 
-      if(wantTitle && n && n.replace(/[^a-z0-9 ]/g,'') === wantTitle.replace(/[^a-z0-9 ]/g,'')){
-        i += 1; continue;
-      }
+  let i = 0;
 
-      if(n.startsWith('local commentar')) { i += 1; continue; }
+  while(i < lines.length && i < 15){
+    const raw = lines[i];
+    const n = window._normLine(raw);
 
-      break;
+    // Remove bracketed placeholders like [homepage logo]
+    if (/^\[.*?\]$/.test(raw)) {
+      i++; continue;
     }
-    return lines.slice(i).join('\n\n').trim();
-  } catch(e){
-    return String(text || '').trim();
+
+    // Exact matches
+    if (n && check.has(n)) {
+      i++; continue;
+    }
+
+    // Title match ignoring punctuation
+    if (wantTitle && n && 
+        n.replace(/[^a-z0-9 ]/g,'') === 
+        wantTitle.replace(/[^a-z0-9 ]/g,'')) {
+      i++; continue;
+    }
+
+    // Loose commentary match
+    if (n.startsWith('local commentar')) {
+      i++; continue;
+    }
+
+    break;
   }
+
+  return lines.slice(i).join('\n\n').trim();
 };
 // ===== /Global helpers =====
 
