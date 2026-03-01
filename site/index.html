@@ -1064,6 +1064,76 @@ function getFiltered() {
   return results;
 }
 
+  function repairHardWrapToParagraphs(text) {
+  // Returns an array of paragraphs with hard-wrapped lines stitched back together.
+  // This fixes cases where DOCX extraction inserts blank lines between wrapped lines.
+
+  let t = String(text || "")
+    .replace(/\r\n/g, "\n")
+    .replace(/\r/g, "\n")
+    .replace(/\u00A0/g, " ")        // nbsp
+    .replace(/[ \t]+\n/g, "\n")     // trailing spaces
+    .replace(/\n{3,}/g, "\n\n")     // collapse 3+ newlines
+    .trim();
+
+  if (!t) return [];
+
+  const lines = t.split("\n");
+  const paras = [];
+  let buf = [];
+
+  const flush = () => {
+    if (!buf.length) return;
+    const joined = buf.join(" ")
+      .replace(/\s+/g, " ")
+      .trim();
+    if (joined) paras.push(joined);
+    buf = [];
+  };
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trim();
+
+    if (!line) {
+      // We have a blank line. Decide if it's a real paragraph break or a fake wrap break.
+
+      // Find the next non-empty line (lookahead)
+      let j = i + 1;
+      while (j < lines.length && !lines[j].trim()) j++;
+      const next = j < lines.length ? lines[j].trim() : "";
+
+      if (!buf.length) continue;
+      if (!next) { flush(); break; }
+
+      const prev = buf[buf.length - 1];
+      const prevLen = prev.length;
+
+      // Heuristics:
+      // - If the previous line is short-ish and does NOT end with sentence punctuation,
+      //   and the next line looks like it continues text,
+      //   treat blank line as a WRAP break (merge).
+      //
+      // This is exactly the pattern you’re seeing: each wrapped line became its own “paragraph”.
+      const prevEndsSentence = /[.!?]$/.test(prev);
+      const prevLooksWrapped = prevLen < 110 && !prevEndsSentence;
+      const nextLooksLikeContinuation = /^[A-Z0-9(“‘"']/.test(next);
+
+      if (prevLooksWrapped && nextLooksLikeContinuation) {
+        // fake paragraph break, keep collecting
+        continue;
+      }
+
+      // real paragraph break
+      flush();
+      continue;
+    }
+
+    buf.push(line);
+  }
+
+  flush();
+  return paras;
+}
 
 // ── Render ────────────────────────────────────────────────────────────────
 function render() {
