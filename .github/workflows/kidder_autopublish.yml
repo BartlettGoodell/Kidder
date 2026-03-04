@@ -56,7 +56,7 @@ jobs:
           fi
 
       - name: Process articles (incremental + prune)
-        if: env.INGEST_CODE == '8' || github.event.inputs.rebuild == 'true'
+        if: env.INGEST_CODE == '8' || env.INGEST_CODE == '0'
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: |
