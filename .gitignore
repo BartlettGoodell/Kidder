@@ -8,3 +8,13 @@
 # macOS + Office junk
 .DS_Store
 ~$*.docx
+*.psd
+kidder_logs/
+
+# Local-only date correction sources
+Corrected_unknown_dates.csv.xlsx
+unknown_dates.csv
+PENDING ARTICLES/
+
+# mac junk
+.DS_Store
