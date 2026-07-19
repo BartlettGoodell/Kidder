@@ -1,6 +1,24 @@
 {
-  "generatedAt": "2026-07-14T14:01:29",
+  "generatedAt": "2026-07-19T13:40:03",
   "articles": [
+    {
+      "sourceFile": "Heat of Summer.docx",
+      "title": "Dealing with the heat of summer",
+      "date": "2026-07-18",
+      "dateISO": "2026-07-18",
+      "dateSource": "filename/text",
+      "summary": "The article discusses the challenges faced by New York's electric grid during high demand in summer, emphasizing the reliance on natural gas turbines to prevent blackouts and the need for increased capacity and renewable energy solutions.",
+      "topics": [
+        "electric grid",
+        "natural gas",
+        "renewable energy",
+        "summer heat",
+        "energy demand"
+      ],
+      "wordCount": 594,
+      "text": "Dealing with the heat of summer\n Local Commentaries\n Jul 18, 2026\n Rolland Kidder\n One day, a week or so ago, when it was 91 degrees, I drove by the electric power plant run by the Board of Public Utilities (BPU) in Jamestown. I thought, and it turned out to be true, that the natural gas turbine there was running at full bore–pumping electricity into a statewide grid that needed it badly.\n Jamestown, itself, didn’t need the power–it gets most of what it needs from the Niagara Power Project at Niagara Falls. But, the statewide grid needed every available resource online to ensure that the air conditioner load in New York City and the metropolitan area didn’t trigger a blackout or a brownout. Obviously, there was also some economic benefit for the BPU as the price for the electricity that it sells increases substantially on days when there are shortages on the grid.\n For years, New York State has been running an electric grid that is close to its maximum capacity. There is just not enough redundancy in the system to provide a comfortably safe cushion when the electric load is maxed out.\n There are reasons for this problem, of course. There has been a surge in demand for electricity from cell phones, to data centers, to electric cars. But also, not as much attention has been paid as should have been to building extra capacity for new load on the grid.\n We hear a lot about renewable energy…but it is still in its infancy. It produces only a fraction of what the grid needs. There has also been a lot of talk about big battery sites to provide the juice needed for peaking power. But, of course, not much is said about the fact that battery backup can last only about 12 hours…then what? This latest hot weather spell went on for 5 days.\n Someday, we may have more nuclear power in the state–and out there in the future, somewhere, scientists will hopefully develop controllable nuclear fusion which will reduce the current need to store spent nuclear fuel rods (nuclear waste)–but the development of fusion is still likely decades away.\n In the interim, we should be thankful for the fact that there are natural gas turbines which, in a few minutes, can pump hundreds of megawatts into the grid to keep the lights lit and air conditioners on. Think of a jet plane with turbines that can propel an aircraft loaded with people and fuel off the runway and take it up to 35,000 ft. The same kind of turbines can also generate electricity, and they can generate it fast when it is needed.\n I know that this is a hard truth to accept for those who want a totally 100% “clean” energy system now. But, in New York state today about 50% of our total electrical load is being produced from natural gas. We are fortunate it is there. Without it, your lights, car chargers and air conditioners would be turning off and shutting down.\n Having the electric power fail when you are having 5 days in a row of over 90 degree weather…would not be a good thing. It would be a calamity and people could die from the heat.\n It takes a lot to make our electric grid work, and we don’t often appreciate enough what it takes to keep it going.\n Rolland Kidder is a Stow resident.\n This article was published in the Jamestown Post-Journal\n July 18, 2026",
+      "updatedAt": "2026-07-19T13:40:03"
+    },
     {
       "sourceFile": "Creatures of Habit.docx",
       "title": "On Being Creatures of Habit",
