@@ -364,6 +364,331 @@
   }
   .article-card.selected::before { background: var(--accent); }
 
+  .feature-package,
+  .archive-resume {
+    grid-column: 1 / -1;
+  }
+
+  .feature-package {
+    position: relative;
+    z-index: 2;
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    grid-auto-rows: minmax(118px, auto);
+    gap: 10px;
+    padding: 12px;
+    background: #8d1f1d;
+    border: 1px solid rgba(43,35,26,.55);
+    box-shadow: 0 16px 36px rgba(0,0,0,.18);
+  }
+
+  .feature-hero {
+    grid-column: span 7;
+    grid-row: span 2;
+    min-height: 271px;
+    position: relative;
+    z-index: 3;
+    overflow: visible;
+    display: grid;
+    grid-template-rows: 52px 1fr 18px;
+    border: 2px solid #e4c36f;
+    background: #082442;
+    color: #fffaf0;
+  }
+
+  .feature-hero::before {
+    content: none;
+  }
+
+  .feature-hero::after {
+    content: none;
+  }
+
+  .feature-hero-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: .75rem;
+    padding: .38rem .75rem;
+    background: #082442;
+  }
+
+  .feature-brand {
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-start;
+    width: min(232px, 50%);
+    height: 38px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .feature-brand img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    object-position: left center;
+  }
+
+  .feature-stamp {
+    display: block;
+    width: min(195px, 34%);
+    height: 38px;
+    background-color: #e7c86d;
+    background-image:
+      linear-gradient(96deg, rgba(255,250,240,.24) 0 9%, transparent 9% 18%, rgba(8,36,66,.18) 18% 22%, transparent 22% 45%, rgba(8,36,66,.22) 45% 48%, transparent 48%),
+      repeating-linear-gradient(87deg, transparent 0 12px, rgba(8,36,66,.2) 12px 14px, transparent 14px 25px);
+    background-blend-mode: screen, multiply;
+    -webkit-mask: url("assets/feature/DECLASSIFIED_WHITE.png") center / contain no-repeat;
+    mask: url("assets/feature/DECLASSIFIED_WHITE.png") center / contain no-repeat;
+    opacity: .92;
+    animation: featureStampSettle .7s ease-out .18s both;
+  }
+
+  .feature-copy-panel {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 1.05rem 1.25rem .85rem;
+    isolation: isolate;
+    background: rgba(20,35,42,.7);
+  }
+
+  .feature-copy-panel::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    background-color: rgba(20,35,42,.7);
+    background-image: url("assets/feature/Kidder-NH-9-26-Hero_0.jpeg");
+    background-blend-mode: multiply;
+    background-size: 110%;
+    background-position: 100% 22%;
+    animation: featurePhotoDrift 24s ease-in-out .25s both;
+  }
+
+  .feature-copy-panel > * {
+    position: relative;
+    z-index: 1;
+  }
+
+  .feature-series-bar {
+    display: flex;
+    align-items: center;
+    padding: 0 .75rem;
+    background: #e7c86d;
+    color: #082442;
+    font-family: var(--mono);
+    min-height: 17px;
+    font-size: .54rem;
+    font-weight: 800;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+  }
+
+  @keyframes featurePhotoDrift {
+    from {
+      background-size: 108%;
+      background-position: 100% 20%;
+    }
+    to {
+      background-size: 121%;
+      background-position: 72% 32%;
+    }
+  }
+
+  @keyframes featureStampSettle {
+    from {
+      opacity: 0;
+      transform: translateY(-4px) scale(1.04);
+    }
+    65% {
+      opacity: .96;
+      transform: translateY(1px) scale(.995);
+    }
+    to {
+      opacity: .92;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  .feature-title {
+    max-width: 590px;
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(1.78rem, 3.3vw, 2.9rem);
+    line-height: .9;
+    font-weight: 700;
+    letter-spacing: 0;
+    margin-bottom: .68rem;
+  }
+
+  .feature-byline {
+    position: relative;
+    z-index: 5;
+    display: inline-block;
+    width: fit-content;
+    margin-bottom: .42rem;
+    font-family: var(--mono);
+    font-size: .66rem;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+  }
+
+  .feature-byline-link {
+    color: rgba(255,250,240,.9);
+    text-decoration: none;
+    border-bottom: 1px solid rgba(231,200,109,.55);
+  }
+
+  .feature-byline-link:hover,
+  .feature-byline-link:focus {
+    color: #fffaf0;
+    outline: none;
+    border-bottom-color: #e7c86d;
+  }
+
+  .author-popover {
+    position: absolute;
+    left: 0;
+    top: calc(100% + .42rem);
+    width: min(280px, 72vw);
+    padding: .45rem;
+    border: 1px solid rgba(231,200,109,.85);
+    background: #fffaf0;
+    color: var(--ink);
+    box-shadow: 0 16px 32px rgba(0,0,0,.35);
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(5px);
+    transition: opacity .16s ease, transform .16s ease;
+  }
+
+  .feature-byline:hover .author-popover,
+  .feature-byline:focus-within .author-popover {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .author-popover img {
+    display: block;
+    width: 100%;
+    aspect-ratio: 1.32;
+    object-fit: cover;
+    object-position: center;
+    margin-bottom: .38rem;
+  }
+
+  .author-popover figcaption {
+    font-family: var(--sans);
+    font-size: .68rem;
+    line-height: 1.28;
+    letter-spacing: 0;
+    text-transform: none;
+    color: var(--ink);
+  }
+
+  .feature-deck {
+    max-width: 520px;
+    font-size: .88rem;
+    line-height: 1.36;
+    color: rgba(255,250,240,.86);
+    margin-bottom: 0;
+  }
+
+  .feature-part {
+    grid-column: span 5;
+    min-height: 100px;
+    padding: .88rem 1rem 1.72rem;
+    border: 2px solid #e4c36f;
+    background: #fffaf0;
+    position: relative;
+    overflow: hidden;
+    color: var(--ink);
+    text-decoration: none;
+    transition: transform .12s ease, border-color .18s ease, box-shadow .18s ease;
+  }
+
+  .feature-part:hover {
+    transform: translateY(-2px);
+    border-color: #f0d783;
+    box-shadow: 0 14px 32px rgba(0,0,0,.2);
+  }
+
+  .feature-part::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 7px;
+    background: #e7c86d;
+    z-index: 3;
+    pointer-events: none;
+  }
+
+  .feature-part-label {
+    font-family: var(--mono);
+    font-size: .64rem;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: #7f1d1d;
+    margin-bottom: .34rem;
+  }
+
+  .feature-part-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.12rem;
+    line-height: 1.05;
+    font-weight: 900;
+    color: var(--ink);
+    margin-bottom: .36rem;
+  }
+
+  .feature-part-meta {
+    font-family: var(--mono);
+    font-size: .62rem;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: #7f1d1d;
+    margin-bottom: 0;
+  }
+
+  .feature-part-cta {
+    position: absolute;
+    left: 7px;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    height: 18px;
+    padding: 0 .85rem 0 1rem;
+    font-family: var(--mono);
+    font-size: .56rem;
+    font-weight: 800;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    border-top: 1px solid #fffaf0;
+    background: #082442;
+    color: #fffaf0;
+    z-index: 2;
+  }
+
+  .feature-part-two .feature-part-cta {
+    background: #082442;
+    color: #fffaf0;
+  }
+
+  .archive-resume {
+    border-top: 1px solid rgba(43,35,26,.2);
+    padding-top: 1.1rem;
+    margin-top: .6rem;
+  }
+
     .card-date{
     font-family: var(--mono);
     font-size: 0.72rem;
@@ -372,6 +697,19 @@
     color: var(--muted);
     margin-bottom: 0.35rem;
 
+  }
+  .new-badge {
+    display: inline-block;
+    margin-left: 8px;
+    padding: 2px 6px;
+    border-radius: 3px;
+    background: var(--accent);
+    color: #fffaf0;
+    font-size: 0.62rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    line-height: 1;
+    vertical-align: 1px;
   }
     .card-title {
     font-family: 'Playfair Display', serif;
@@ -416,6 +754,27 @@
     font-size: 0.62rem;
     color: var(--ink-light);
     white-space: nowrap;
+  }
+
+  @media (max-width: 900px) {
+    .feature-package {
+      grid-template-columns: 1fr;
+    }
+
+    .feature-hero,
+    .feature-part {
+      grid-column: 1;
+      grid-row: auto;
+    }
+
+    .feature-hero {
+      min-height: 290px;
+      padding: 1.5rem;
+    }
+
+    .feature-title {
+      font-size: 2.65rem;
+    }
   }
 
   /* ── Preview Panel ────────────────────────────────────── */
@@ -914,6 +1273,52 @@ function formatDate(isoDate) {
   }
 }
 
+function formatTileTitle(title) {
+  const smallWords = new Set([
+    'a', 'an', 'and', 'as', 'at', 'but', 'by', 'for', 'from', 'in',
+    'into', 'nor', 'of', 'on', 'or', 'over', 'per', 'the', 'to',
+    'up', 'vs', 'via', 'with'
+  ]);
+
+  const words = String(title || '').split(/(\s+)/);
+  const realWordIndexes = words
+    .map((word, index) => /\S/.test(word) ? index : -1)
+    .filter(index => index >= 0);
+
+  const firstWord = realWordIndexes[0];
+  const lastWord = realWordIndexes[realWordIndexes.length - 1];
+  let forceCapNext = false;
+
+  const capitalizeTitleWord = word => {
+    const lower = word.toLowerCase();
+    return lower.replace(/[a-z0-9]+(?:['’][a-z0-9]+)?/g, part => {
+      if (/^\d/.test(part)) return part;
+      return part.charAt(0).toUpperCase() + part.slice(1);
+    });
+  };
+
+  return words.map((word, index) => {
+    if (!/\S/.test(word)) return word;
+
+    const lower = word.toLowerCase();
+    const core = lower.replace(/^[^a-z0-9]+|[^a-z0-9]+$/g, '');
+    const preserve = /[A-Z]\.[A-Z]/.test(word) || /^[A-Z0-9]{2,}$/.test(word.replace(/[^A-Z0-9]/g, ''));
+    const shouldLower = smallWords.has(core) && index !== firstWord && index !== lastWord && !forceCapNext;
+
+    let formatted = word;
+    if (preserve) {
+      formatted = word;
+    } else if (shouldLower) {
+      formatted = lower;
+    } else {
+      formatted = capitalizeTitleWord(word);
+    }
+
+    forceCapNext = /[:;?!]$/.test(word);
+    return formatted;
+  }).join('');
+}
+
 // Remove stacked header lines at the start of body text that duplicate the preview header.
 window.stripRedundantHeaderLines = function(text, a){
   let t = String(text || '').replace(/\r\n/g,'\n').replace(/\r/g,'\n').trim();
@@ -981,11 +1386,23 @@ let activeTopic = 'all';
 // Date filter should be OPT-IN (this fixes your 99 vs 64 problem)
 let dateFilterActive = false;
 
+function getArticleDate(a) {
+  return a.dateISO || a.date || '';
+}
+
+function getNewestArticleDate() {
+  return allArticles
+    .map(getArticleDate)
+    .filter(d => d && d !== '0001-01-01')
+    .sort()
+    .at(-1) || '';
+}
+
 
 // ── Load data ──────────────────────────────────────────────────────────────
 async function loadData() {
   try {
-    const res = await fetch('data.json');
+    const res = await fetch(`data.json?v=${Date.now()}`, { cache: 'no-store' });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const json = await res.json();
 
@@ -1106,6 +1523,68 @@ function getFiltered() {
   return results;
 }
 
+function shouldShowFeaturePackage(q) {
+  if (activeTopic !== 'all') return false;
+  if (q) return false;
+  if (dateFilterActive) {
+    const df = document.getElementById('date-from')?.value || '';
+    const dt = document.getElementById('date-to')?.value || '';
+    if (df || dt) return false;
+  }
+  return true;
+}
+
+function renderFeaturePackage(grid) {
+  const feature = document.createElement('section');
+  feature.className = 'feature-package';
+  feature.innerHTML = `
+    <div class="feature-hero">
+      <div class="feature-hero-head">
+        <a class="feature-brand" href="https://www.usni.org/" target="_blank" rel="noopener" aria-label="U.S. Naval Institute">
+          <img src="assets/feature/USNI%20logo-white.png" alt="U.S. Naval Institute">
+        </a>
+        <div class="feature-stamp" aria-hidden="true"></div>
+      </div>
+      <div class="feature-copy-panel">
+        <div class="feature-title">Declassified: The Hidden Path to Japan's Surrender</div>
+        <div class="feature-byline">
+          <a class="feature-byline-link" href="assets/feature/Codex%20Image%20Sep%205%2C%202026%2C%2009_00_26%20AM.png" target="_blank" rel="noopener">
+            By Rolland E. Kidder
+          </a>
+          <figure class="author-popover" aria-hidden="true">
+            <img src="assets/feature/Codex%20Image%20Sep%205%2C%202026%2C%2009_00_26%20AM.png" alt="">
+            <figcaption>Author Rolland E. Kidder, shown here working with Ambassador F. Haydn Williams on the American Battle Monuments Commission to establish, design, and build the National World War II Memorial in Washington, D.C.</figcaption>
+          </figure>
+        </div>
+        <div class="feature-deck">
+          A two-part feature on the secret channels and first American landings that closed World War II in the Pacific.
+        </div>
+      </div>
+      <div class="feature-series-bar">World War II Naval History · Featured Series</div>
+    </div>
+
+    <a class="feature-part feature-part-one" href="https://www.usni.org/magazines/naval-history/2026/august/declassified-part-one-negotiations-ended-world-war-ii" target="_blank" rel="noopener">
+      <div class="feature-part-label">Part One</div>
+      <div class="feature-part-title">The Negotiations That Ended World War II</div>
+      <div class="feature-part-meta">Naval History · August 2026</div>
+      <div class="feature-part-cta">Read at USNI</div>
+    </a>
+    <a class="feature-part feature-part-two" href="https://www.usni.org/magazines/naval-history/2026/october/declassified-part-two-how-first-americans-entered-japan-after" target="_blank" rel="noopener">
+      <div class="feature-part-label">Part Two</div>
+      <div class="feature-part-title">How the First Americans Entered Japan After WWII</div>
+      <div class="feature-part-meta">Naval History · October 2026</div>
+      <div class="feature-part-cta">Read at USNI</div>
+    </a>
+  `;
+
+  const resume = document.createElement('div');
+  resume.className = 'archive-resume';
+  resume.textContent = 'Latest Archive Articles';
+
+  grid.appendChild(feature);
+  grid.appendChild(resume);
+}
+
   function repairHardWrapToParagraphs(text) {
   // Returns an array of paragraphs with hard-wrapped lines stitched back together.
   // This fixes cases where DOCX extraction inserts blank lines between wrapped lines.
@@ -1182,6 +1661,7 @@ function render() {
   const q = (document.getElementById('search-input')?.value || '').trim();
   const filtered = getFiltered();
   const grid = document.getElementById('article-grid');
+  const newestDate = getNewestArticleDate();
 
   if (!grid) return;
 
@@ -1196,18 +1676,24 @@ function render() {
     return;
   }
 
+  if (shouldShowFeaturePackage(q)) {
+    renderFeaturePackage(grid);
+  }
+
   filtered.forEach(a => {
     const card = document.createElement('div');
     card.className = 'article-card' + (a._id === selectedId ? ' selected' : '');
     card.dataset.id = a._id;
 
     const dateStr = a.date ? formatDate(a.date) : '(date unknown)';
+    const isNewest = newestDate && getArticleDate(a) === newestDate;
     const topicHtml = (a.topics || []).slice(0,3).map(t =>
       `<span class="card-topic">${esc(t)}</span>`).join('');
-    const titleHtml   = q ? highlight(esc(a.title), q) : esc(a.title);
+    const displayTitle = formatTileTitle(a.title);
+    const titleHtml   = q ? highlight(esc(displayTitle), q) : esc(displayTitle);
 
     card.innerHTML = `
-      <div class="card-date">${dateStr}</div>
+      <div class="card-date">${dateStr}${isNewest ? '<span class="new-badge">NEW</span>' : ''}</div>
       <div class="card-title">${titleHtml}</div>
       <div class="card-footer">
         <div class="card-topics">${topicHtml}</div>
