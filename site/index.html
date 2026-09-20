@@ -5,6 +5,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Rolland Kidder Opinion Archive</title>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-8GEBXJ9CE4"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){ dataLayer.push(arguments); }
+  gtag('js', new Date());
+  gtag('config', 'G-8GEBXJ9CE4');
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,600;1,8..60,300;1,8..60,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
@@ -1534,6 +1541,15 @@ function shouldShowFeaturePackage(q) {
   return true;
 }
 
+function trackArticleSelection(id, title, type) {
+  if (typeof gtag !== 'function') return;
+  gtag('event', 'select_content', {
+    content_type: type || 'archive_article',
+    item_id: id,
+    article_title: title
+  });
+}
+
 function renderFeaturePackage(grid) {
   const feature = document.createElement('section');
   feature.className = 'feature-package';
@@ -1563,13 +1579,13 @@ function renderFeaturePackage(grid) {
       <div class="feature-series-bar">World War II Naval History · Featured Series</div>
     </div>
 
-    <a class="feature-part feature-part-one" href="https://www.usni.org/magazines/naval-history/2026/august/declassified-part-one-negotiations-ended-world-war-ii" target="_blank" rel="noopener">
+    <a class="feature-part feature-part-one" href="https://www.usni.org/magazines/naval-history/2026/august/declassified-part-one-negotiations-ended-world-war-ii" target="_blank" rel="noopener" data-article-id="usni-declassified-part-one" data-article-title="The Negotiations That Ended World War II">
       <div class="feature-part-label">Part One</div>
       <div class="feature-part-title">The Negotiations That Ended World War II</div>
       <div class="feature-part-meta">Naval History · August 2026</div>
       <div class="feature-part-cta">Read at USNI</div>
     </a>
-    <a class="feature-part feature-part-two" href="https://www.usni.org/magazines/naval-history/2026/october/declassified-part-two-how-first-americans-entered-japan-after" target="_blank" rel="noopener">
+    <a class="feature-part feature-part-two" href="https://www.usni.org/magazines/naval-history/2026/october/declassified-part-two-how-first-americans-entered-japan-after" target="_blank" rel="noopener" data-article-id="usni-declassified-part-two" data-article-title="How the First Americans Entered Japan After WWII">
       <div class="feature-part-label">Part Two</div>
       <div class="feature-part-title">How the First Americans Entered Japan After WWII</div>
       <div class="feature-part-meta">Naval History · October 2026</div>
@@ -1583,6 +1599,12 @@ function renderFeaturePackage(grid) {
 
   grid.appendChild(feature);
   grid.appendChild(resume);
+
+  feature.querySelectorAll('.feature-part').forEach(link => {
+    link.addEventListener('click', () => {
+      trackArticleSelection(link.dataset.articleId, link.dataset.articleTitle, 'usni_feature');
+    });
+  });
 }
 
   function repairHardWrapToParagraphs(text) {
@@ -1700,7 +1722,10 @@ function render() {
         <div class="card-wc">${a.wordCount ? a.wordCount.toLocaleString() + ' wds' : ''}</div>
       </div>`;
 
-    card.addEventListener('click', () => selectArticle(a._id));
+    card.addEventListener('click', () => {
+      trackArticleSelection(a._id, displayTitle, 'archive_article');
+      selectArticle(a._id);
+    });
     grid.appendChild(card);
   });
 
