@@ -762,6 +762,7 @@
     color: var(--ink-light);
     white-space: nowrap;
   }
+  .article-click-count:empty { display: none; }
 
   @media (max-width: 900px) {
     .feature-package {
@@ -1389,6 +1390,7 @@ window.stripRedundantHeaderLines = function(text, a){
 let allArticles = [];
 let selectedId = null;
 let activeTopic = 'all';
+let articleClickCounts = Object.create(null);
 
 // Date filter should be OPT-IN (this fixes your 99 vs 64 problem)
 let dateFilterActive = false;
@@ -1416,6 +1418,7 @@ async function loadData() {
     allArticles = (json.articles || []).map((a, i) => ({ ...a, _id: i }));
 
     init();
+    loadArticleClickCounts();
   } catch (e) {
     document.getElementById('article-grid').innerHTML =
       `<div class="no-results">
@@ -1423,6 +1426,25 @@ async function loadData() {
         <small style="color:var(--ink-light)">${esc(e.message)}</small>
       </div>`;
   }
+}
+
+async function loadArticleClickCounts() {
+  try {
+    const res = await fetch('/api/article-counts', { cache: 'no-store' });
+    if (!res.ok) return;
+    const json = await res.json();
+    articleClickCounts = json.counts || Object.create(null);
+    applyArticleClickCounts();
+  } catch (_) {
+    // Counts are supplementary; the archive remains fully usable without them.
+  }
+}
+
+function applyArticleClickCounts(root = document) {
+  root.querySelectorAll('[data-click-title]').forEach(el => {
+    const count = Number(articleClickCounts[el.dataset.clickTitle] || 0);
+    el.textContent = count > 0 ? ` / ${count.toLocaleString()}` : '';
+  });
 }
 
 
@@ -1583,13 +1605,13 @@ function renderFeaturePackage(grid) {
       <div class="feature-part-label">Part One</div>
       <div class="feature-part-title">The Negotiations That Ended World War II</div>
       <div class="feature-part-meta">Naval History · August 2026</div>
-      <div class="feature-part-cta">Read at USNI</div>
+      <div class="feature-part-cta">Read at USNI<span class="article-click-count" data-click-title="The Negotiations That Ended World War II"></span></div>
     </a>
     <a class="feature-part feature-part-two" href="https://www.usni.org/magazines/naval-history/2026/october/declassified-part-two-how-first-americans-entered-japan-after" target="_blank" rel="noopener" data-article-id="usni-declassified-part-two" data-article-title="How the First Americans Entered Japan After WWII">
       <div class="feature-part-label">Part Two</div>
       <div class="feature-part-title">How the First Americans Entered Japan After WWII</div>
       <div class="feature-part-meta">Naval History · October 2026</div>
-      <div class="feature-part-cta">Read at USNI</div>
+      <div class="feature-part-cta">Read at USNI<span class="article-click-count" data-click-title="How the First Americans Entered Japan After WWII"></span></div>
     </a>
   `;
 
@@ -1599,6 +1621,7 @@ function renderFeaturePackage(grid) {
 
   grid.appendChild(feature);
   grid.appendChild(resume);
+  applyArticleClickCounts(feature);
 
   feature.querySelectorAll('.feature-part').forEach(link => {
     link.addEventListener('click', () => {
@@ -1719,7 +1742,7 @@ function render() {
       <div class="card-title">${titleHtml}</div>
       <div class="card-footer">
         <div class="card-topics">${topicHtml}</div>
-        <div class="card-wc">${a.wordCount ? a.wordCount.toLocaleString() + ' wds' : ''}</div>
+        <div class="card-wc">${a.wordCount ? a.wordCount.toLocaleString() + ' wds' : ''}<span class="article-click-count" data-click-title="${esc(displayTitle)}"></span></div>
       </div>`;
 
     card.addEventListener('click', () => {
@@ -1728,6 +1751,8 @@ function render() {
     });
     grid.appendChild(card);
   });
+
+  applyArticleClickCounts(grid);
 
   // Status bar
   const active = [];
